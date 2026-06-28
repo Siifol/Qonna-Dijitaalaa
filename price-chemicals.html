@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chemicals & Fertilizers</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .search-bar { width: 100%; padding: 15px; margin-bottom: 20px; border: 2px solid #2E7D32; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+        .item-card { background: white; padding: 15px; margin-bottom: 10px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .item-info h4 { margin: 0; color: #2E7D32; }
+        .item-info p { margin: 0; font-size: 13px; color: #666; }
+        .price-tag { font-weight: bold; color: #333; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <div class="nav-brand">🌱 Qonna Dijitaalawaa Shaggar</div>
+        <a href="market-prices.html" class="btn-dash">Back</a>
+    </div>
+
+    <div class="container">
+        <h2>Chemicals & Fertilizers</h2>
+        <input type="text" id="searchInput" class="search-bar" placeholder="🔍 Search inputs...">
+        
+        <div id="chemicalsListContainer">
+            <!-- Data will be injected here -->
+        </div>
+    </div>
+
+    <script src="chemicals-data.js"></script>
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const container = document.getElementById('chemicalsListContainer');
+
+        function renderItems(filter = '') {
+            container.innerHTML = '';
+            const filtered = chemicalsDB.filter(i => i.name.toLowerCase().includes(filter.toLowerCase()));
+            
+            filtered.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'item-card';
+                div.innerHTML = `
+                    <div class="item-info">
+                        <h4>${item.name}</h4>
+                        <p>${item.type}</p>
+                    </div>
+                    <div class="price-tag">${item.price} ETB</div>
+                    <button class="action-btn" onclick="alert('Ordering ${item.name}')">Buy/Sell</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        searchInput.addEventListener('input', (e) => renderItems(e.target.value));
+        renderItems();
+    </script>
+</body>
+</html>

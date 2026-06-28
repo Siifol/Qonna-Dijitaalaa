@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Qonna Dijitaalawaa Shaggar</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="lang-container">
+        <button id="langBtn" class="btn-lang">Afaan Oromoo</button>
+    </div>
+
+    <div class="container">
+        <h2 id="regHeading" data-en="Create an Account" data-om="Herrega Haaraa Banaa">Create an Account</h2>
+        
+        <form id="registerForm">
+            <input type="text" id="fullName" data-en-ph="Full Name" data-om-ph="Maqaa Guutuu" placeholder="Full Name" required>
+            
+            <input type="text" id="username" data-en-ph="Username" data-om-ph="Maqaa Fayyadamaa" placeholder="Username" required>
+
+            <input type="text" id="contact" list="countryCodes" data-en-ph="Email or Phone (+251...)" data-om-ph="E-mail ykn Bilbila (+251...)" placeholder="Email or Phone (+251...)" required>
+            
+            <datalist id="countryCodes">
+                <option value="+251">Ethiopia</option>
+                <option value="+254">Kenya</option>
+                <option value="+255">Tanzania</option>
+                <option value="+256">Uganda</option>
+            </datalist>
+
+            <select id="subcity" required class="dropdown">
+                <option value="" disabled selected data-en="Choose your Sub-city" data-om="Kutaa Magaalaa Filadhu">Choose your Sub-city</option>
+                <option value="melka_nono">Melka Nono</option>
+                <option value="furi">Furi</option>
+                <option value="sebeta">Sebeta</option>
+                <option value="eka_tafo">Eka Tafo</option>
+                <option value="galan">Galan</option>
+                <option value="galan_guda">Galan Guda</option>
+                <option value="gafarsa_guje">Gafarsa Guje</option>
+                <option value="kura_jida">Kura Jida</option>
+                <option value="koye_feche">Koye feche</option>
+                <option value="mana_abichu">Mana Abichu</option>
+                <option value="sululta">Sululta</option>
+                <option value="burayu">Burayu</option>
+            </select>
+
+            <input type="text" id="shegerId" data-en-ph="Sheger ID Card Number" data-om-ph="Lakk. Waraqaa Eenyummaa Shaggar" placeholder="Sheger ID Card Number" required>
+
+            <div class="file-upload-wrapper">
+                <label id="fileLabel" data-en="Upload Digital ID Card (Image/PDF)" data-om="Waraqaa Eenyummaa Shaggar Fe'i (Fakkichaa/PDF)">Upload Digital ID Card (Image/PDF)</label>
+                <input type="file" id="idUpload" accept="image/*,.pdf" required>
+            </div>
+
+            <input type="password" id="password" data-en-ph="Password" data-om-ph="Jecha Iccitii" placeholder="Password" required>
+
+            <div id="messageBox" class="message-box"></div>
+
+            <button type="submit" id="submitBtn" data-en="Register" data-om="Galmaa'i">Register</button>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

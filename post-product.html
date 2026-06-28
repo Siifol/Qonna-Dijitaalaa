@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketplace - Qonna Dijitaalawaa Shaggar</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <div class="navbar">
+        <div class="nav-brand">🌱 Qonna Dijitaalawaa Shaggar</div>
+        <a href="index.html" class="btn-dash" data-en="Home" data-om="Mana">Home</a>
+    </div>
+
+    <div class="container">
+        <h2 data-en="Marketplace Panel" data-om="Mooora Gabaa">Marketplace Panel</h2>
+        
+        <!-- Role Simulator Toggle (For testing purposes since login isn't built yet) -->
+        <div style="margin-bottom: 20px; background: #E8F5E9; padding: 10px; border-radius: 8px; font-size: 13px;">
+            <label style="font-weight: bold; color: #2E7D32;" data-en="Simulate Current User Role:" data-om="Gahee Fayyadamaa Ammee:">Simulate Current User Role:</label>
+            <select id="roleSimulator" class="dropdown" style="padding: 5px; margin-top: 5px; font-size: 14px;">
+                <option value="farmer" data-en="Farmer (Can Buy & Sell)" data-om="Qotee Bulaa (Bituu fi Gurguruu)">Farmer (Can Buy & Sell)</option>
+                <option value="supplier" data-en="Supplier (Sell Only)" data-om="Dhiyeessaa (Gurgurtaf Qofa)">Supplier (Sell Only)</option>
+            </select>
+        </div>
+
+        <form id="productForm">
+            <!-- Market Action (Changes dynamically based on role) -->
+            <div id="actionWrapper">
+                <label style="font-weight: bold; display:block; margin-bottom: 8px;" data-en="I want to:" data-om="....n barbaada:">I want to:</label>
+                <select id="marketAction" required class="dropdown">
+                    <option value="sell" data-en="Sell / Offer" data-om="Gurguruu / Dhiyeessuu">Sell / Offer</option>
+                    <option value="buy" id="buyOption" data-en="Buy / Request" data-om="Bituu / Gaafachuu">Buy / Request</option>
+                </select>
+            </div>
+
+            <!-- Category Type Selector -->
+            <select id="itemCategory" required class="dropdown">
+                <option value="" disabled selected data-en="Select Category" data-om="Ramaddii Filadhu">Select Category</option>
+                <option value="seeds" data-en="Seeds (Wheat, Maize, Teff...)" data-om="Sanyii (Kamadii, Boqqolloora, Xaafii...)">Seeds</option>
+                <option value="materials" data-en="Farm Materials & Tools" data-om="Meeshaalee fi Meeshaa Qonnaa">Farm Materials & Tools</option>
+                <option value="fertilizer" data-en="Fertilizers & Nutrients" data-om="Xaa'oo fi Sookoo">Fertilizers</option>
+                <option value="produce" data-en="Fresh Harvest / Crop" data-om="Midhaan Oomishame">Fresh Harvest / Crop</option>
+            </select>
+
+            <!-- Product Name -->
+            <input type="text" id="productName" data-en-ph="Item Name (e.g. Improved Maize Seed)" data-om-ph="Maqaa Meeshaa (fkn. Sanyii Boqqolloora Fooyya'e)" placeholder="Item Name" required>
+            
+            <!-- Price -->
+            <input type="number" id="productPrice" data-en-ph="Estimated Price (ETB)" data-om-ph="Gatii Tilmaamaa (ETB)" placeholder="Estimated Price (ETB)" required>
+
+            <div id="messageBox" class="message-box"></div>
+
+            <button type="submit" id="submitBtn" data-en="Post to Marketplace" data-om="Gabaatti Ergi">Post to Marketplace</button>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
