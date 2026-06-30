@@ -217,3 +217,56 @@ async function sendDataToBackend(event) {
         alert("Gara duubaatti qunnamtii uumuu hin dandeenye!");
     }
 }
+// ============================================================
+// 9. WORKSPACE PROFILE ROUTINES & SESSION MANAGEMENT
+// ============================================================
+
+// Run this initialization automatically every time a page loads up
+document.addEventListener('DOMContentLoaded', () => {
+    
+    // Check if we are currently standing on the marketplace/workspace layout
+    const displayWelcomeName = document.getElementById('displayWelcomeName');
+    
+    if (displayWelcomeName) {
+        // Read the user profile string from local memory and convert it back to an object
+        const activeUserSession = JSON.parse(localStorage.getItem('activeUser'));
+
+        // Guard Check: If no session data exists, bounce unauthenticated users back to login page
+        if (!activeUserSession) {
+            alert("Maaloo dura seeni! / Please login first!");
+            window.location.href = "login.html";
+            return;
+        }
+
+        // Inject saved profile variables dynamically directly into the HTML screen layout
+        displayWelcomeName.textContent = activeUserSession.fullName;
+        document.getElementById('profFullName').textContent = activeUserSession.fullName;
+        document.getElementById('profUsername').textContent = activeUserSession.username;
+        document.getElementById('profContact').textContent = activeUserSession.contact;
+        document.getElementById('profSubCity').textContent = activeUserSession.subCity;
+        document.getElementById('profShegerId').textContent = activeUserSession.shegerId;
+    }
+
+    // Wiring up the Additional Action Button Event Listener
+    const additionalActionButton = document.getElementById('additionalActionButton');
+    if (additionalActionButton) {
+        additionalActionButton.addEventListener('click', () => {
+            const isOromo = (typeof currentLang !== 'undefined' && currentLang === 'om');
+            
+            // Custom action logic for your platform hub can go right inside here!
+            alert(isOromo 
+                ? "Sirni QonnaAI qophaa'aa jira! Gara daldalaatti cehaa..." 
+                : "Smart Farming core hub initialized! Connecting you to tools...");
+        });
+    }
+
+    // Wiring up the Logout Button Event Listener
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('activeUser'); // Destroy secure session data token
+            window.location.href = "login.html";   // Kick back to access portal
+        });
+    }
+});
+

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QonnaAI - Workspace</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Top Navigation with Language Controls -->
+    <nav style="display: flex; justify-content: space-between; padding: 15px; background: #2e7d32; color: white;">
+        <h2 data-en="QonnaAI Workspace" data-om="Bakka Hojii QonnaAI">QonnaAI Workspace</h2>
+        <button id="langBtn" style="background: white; color: #2e7d32; border: none; padding: 5px 10px; border-radius: 4px;">English</button>
+    </nav>
+
+    <div class="workspace-container" style="max-width: 600px; margin: 30px auto; padding: 20px; box-shadow: 0px 4px 10px rgba(0,0,0,0.1); border-radius: 8px;">
+        
+        <!-- Welcome Banner -->
+        <h3 style="color: #2e7d32;">
+            <span data-en="Welcome Back, " data-om="Baga Nagaan Deebitee, ">Welcome Back, </span>
+            <span id="displayWelcomeName">...</span>!
+        </h3>
+        <hr>
+
+        <!-- Account Profile Details Matrix -->
+        <div class="profile-details" style="margin: 20px 0; line-height: 2;">
+            <p><strong><span data-en="Full Name:" data-om="Maqaa Guutuu:">Full Name:</span></strong> <span id="profFullName">...</span></p>
+            <p><strong><span data-en="Username:" data-om="Maqaa Fayyadamaa:">Username:</span></strong> <span id="profUsername">...</span></p>
+            <p><strong><span data-en="Contact/Email:" data-om="Quunnamtii/Imeeyilii:">Contact/Email:</span></strong> <span id="profContact">...</span></p>
+            <p><strong><span data-en="Sub-City:" data-om="Kifla Kaatamaa:">Sub-City:</span></strong> <span id="profSubCity">...</span></p>
+            <p><strong><span data-en="Sheger ID Number:" data-om="Lakkoofsa Eenyummaa Shaggar:">Sheger ID Number:</span></strong> <span id="profShegerId">...</span></p>
+        </div>
+
+        <hr style="margin-bottom: 20px;">
+
+        <!-- Additional Interaction Button Layout -->
+        <div style="text-align: center; gap: 15px; display: flex; flex-direction: column;">
+            <button id="additionalActionButton" class="register-btn" style="background-color: #1565c0; color: white; padding: 12px; border: none; border-radius: 4px; font-weight: bold; width: 100%; cursor: pointer;" data-en="Launch Smart Farming Hub" data-om="Hojii Qonnaa Dijitaalaa Jalqabi">
+                Launch Smart Farming Hub
+            </button>
+
+            <button id="logoutBtn" style="background-color: #c62828; color: white; padding: 10px; border: none; border-radius: 4px; width: 100%; cursor: pointer;" data-en="Logout Account" data-om="Herrega Baasi">
+                Logout Account
+            </button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

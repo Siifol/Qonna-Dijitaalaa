@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-en="QonnaAI - Login" data-om="QonnaAI - Seeni">QonnaAI - Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div style="text-align: right; padding: 10px;">
+        <button id="langBtn" class="lang-toggle-btn">English</button>
+    </div>
+
+    <div class="login-wrapper" style="max-width: 400px; margin: 40px auto; padding: 20px;">
+        <h2 style="text-align: center; color: #2e7d32;" data-en="Login to Your Workplace" data-om="Gara Hojii Keetti Seeni">Login to Your Workplace</h2>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <input type="text" id="loginContact" placeholder="Phone or Email" data-en-ph="Phone or Email" data-om-ph="Bilbila ykn Imeeyilii" required style="width: 100%; margin-bottom: 15px; padding: 10px;">
+            </div>
+            
+            <div class="form-group">
+                <input type="password" id="loginPassword" placeholder="Password" data-en-ph="Password" data-om-ph="Jecha Iccitii" required style="width: 100%; margin-bottom: 15px; padding: 10px;">
+            </div>
+            
+            <button type="submit" class="register-btn" data-en="Sign In" data-om="Seeni" style="width: 100%; padding: 12px; background-color: #2e7d32; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">Sign In</button>
+        </form>
+
+        <div id="loginMessageBox" class="message-box" style="display: none; margin-top: 15px; padding: 10px; text-align: center;"></div>
+
+        <div class="form-footer" style="text-align: center; margin-top: 20px; font-size: 14px;">
+            <p>
+                <span data-en="Don't have an account? " data-om="Herrega hin qabduu? ">Don't have an account? </span>
+                <a href="register.html" data-en="Register Here" data-om="Asitti Galmaa'i" style="color: #2e7d32; font-weight: bold; text-decoration: none;">Register Here</a>
+            </p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

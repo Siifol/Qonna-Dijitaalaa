@@ -216,3 +216,22 @@ input:focus, .dropdown:focus {
     font-weight: bold;
     cursor: pointer;
 }
+.form-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    color: #555;
+}
+
+.form-footer a {
+    color: #2e7d32; /* Matches a green farming theme */
+    text-shadow: none;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.2s ease;
+}
+
+.form-footer a:hover {
+    color: #1b5e20;
+    text-decoration: underline;
+}
