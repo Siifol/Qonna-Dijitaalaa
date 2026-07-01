@@ -4,269 +4,103 @@ function applyLanguage(lang) {
     if (langBtn) {
         langBtn.textContent = lang === 'en' ? 'Afaan Oromoo' : 'English';
     }
-
-    // Change text content for tagged elements
     document.querySelectorAll('[data-en]').forEach(el => {
         el.textContent = el.getAttribute(`data-${lang}`);
     });
-
-    // Change input input placeholder values safely 
     document.querySelectorAll('[data-en-ph]').forEach(el => {
         el.placeholder = el.getAttribute(`data-${lang}-ph`);
     });
 }
 
-// 2. Global Site Persistent State Initialization (Reads saved language choices)
 let currentLang = localStorage.getItem('selectedLang') || 'en';
 applyLanguage(currentLang);
 
-// 3. Language Toggle Click Event
 const langBtn = document.getElementById('langBtn');
 if (langBtn) {
     langBtn.addEventListener('click', () => {
         currentLang = currentLang === 'en' ? 'om' : 'en';
-        
-        // Save the chosen language to localStorage for the whole website
-        localStorage.setItem('selectedLang', currentLang); 
+        localStorage.setItem('selectedLang', currentLang);
         applyLanguage(currentLang);
-
-        // Hide warning popups during language transitions
         const msgBox = document.getElementById('messageBox');
         if (msgBox) msgBox.style.display = 'none';
     });
 }
 
-// 4. Multi-Factor Registration Validation Filter
+// 4. Registration Validation
 const registerForm = document.getElementById('registerForm');
 if (registerForm) {
     registerForm.addEventListener('submit', function(e) {
-        e.preventDefault(); // Halt default form refreshing routines
-        
+        e.preventDefault();
         const password = document.getElementById('password').value;
         const msgBox = document.getElementById('messageBox');
-
-        // Robust Password Check Conditionals
-        const hasLetter = /[a-zA-Z]/.test(password);
-        const hasNumber = /[0-9]/.test(password);
-        const hasSpecial = /[^a-zA-Z0-9]/.test(password);
-        const isLongEnough = password.length >= 8;
-
         if (msgBox) msgBox.style.display = 'block';
 
-        if (!hasLetter || !hasNumber || !hasSpecial || !isLongEnough) {
-            // Error State: Show security requirements message dynamically
+        if (password.length < 8 || !/[a-zA-Z]/.test(password) || !/[0-9]/.test(password) || /[^a-zA-Z0-9]/.test(password) === false) {
             if (msgBox) {
                 msgBox.className = 'message-box error';
-                if (currentLang === 'en') {
-                    msgBox.innerHTML = `<strong>Weak Password!</strong><br>Your password must contain a mixture of characters, numbers, and alphabets (at least 8 characters long).<br><em>Example: Secure#2026</em>`;
-                } else {
-                    msgBox.innerHTML = `<strong>Jecha Iccitii Gabaabaa!</strong><br>Jechi iccitii keessan qubee, lakkoofsa fi mallattoo addaa walitti makuu qaba (yoo xiqqaate mallattolee 8).<br><em>Fakkeenya: Secure#2026</em>`;
-                }
+                msgBox.innerHTML = currentLang === 'en' ? "<strong>Weak Password!</strong>" : "<strong>Jecha Iccitii Gabaabaa!</strong>";
             }
         } else {
-            // Success State: Clear form validation and trigger pending verification processing banner
-            if (msgBox) {
-                msgBox.className = 'message-box info';
-                if (currentLang === 'en') {
-                    msgBox.innerHTML = `<strong>Account Provisionally Saved!</strong><br>Because your Sheger City ID card is digital, your account activation is pending security verification. We are validating your card metrics now.`;
-                } else {
-                    msgBox.innerHTML = `<strong>Herregni Keessan Olkaayameera!</strong><br>Waraqaan eenyummaa Shaggar keessan dijitaala waan ta'eef, herregni keessan guutummaatti banamuuf sirreessuun mirkanaa'aa jira.`;
-                }
-            }
-
-            // ============================================================
-            // 🔥 LIVE BACKEND SEND ROUTINE
-            // ============================================================
-            
-            // 1. Gather all input values from the registration form
             const userData = {
-                fullName: document.getElementById('fullName')?.value || 'N/A',
-                username: document.getElementById('username')?.value || 'N/A',
-                contact: document.getElementById('contact')?.value || 'N/A',
-                subCity: document.getElementById('subCity')?.value || 'N/A',
-                shegerId: document.getElementById('shegerId')?.value || 'N/A',
-                idCardName: document.getElementById('idCardName')?.value || 'N/A',
+                fullName: document.getElementById('fullName')?.value,
                 password: password
             };
-
-            // 2. Transmit the data across the web to your live Render application server
             fetch("https://qonna-dijitaalaa.onrender.com/register", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(userData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log("Success response received from Render backend:", data);
-            })
-            .catch(error => {
-                console.error("Transmission breakdown connecting to Render:", error);
-            });
+            }).then(r => r.json()).then(data => console.log(data)).catch(err => console.error(err));
         }
     });
 }
 
-// 5. Product Form Interception Routing
-const productForm = document.getElementById('productForm');
-if (productForm) {
-    productForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const name = document.getElementById('productName').value;
-        const price = document.getElementById('productPrice').value;
-        const msgBox = document.getElementById('messageBox');
-
-        if (msgBox) {
-            msgBox.style.display = 'block';
-            msgBox.className = 'message-box info';
-
-            if (currentLang === 'en') {
-                msgBox.innerHTML = `<strong>Success!</strong> Listed "${name}" for ${price} ETB successfully.`;
-            } else {
-                msgBox.innerHTML = `<strong>Milkaa'ina!</strong> "${name}" gatii ${price} ETB tiin gabaafameera.`;
-            }
-        }
-
-        productForm.reset();
-    });
-}
-
-// 6. Marketplace Role-Based Filter Engine
-const roleSimulator = document.getElementById('roleSimulator');
-const marketAction = document.getElementById('marketAction');
-const buyOption = document.getElementById('buyOption');
-
-function enforceRoleRestrictions() {
-    if (!roleSimulator || !marketAction) return;
-    
-    if (roleSimulator.value === 'supplier') {
-        // Suppliers can ONLY sell. Force selection to 'sell' and hide 'buy'
-        marketAction.value = 'sell';
-        if (buyOption) buyOption.style.display = 'none';
-    } else {
-        // Farmers can access both buy and sell options
-        if (buyOption) buyOption.style.display = 'block';
-    }
-}
-
-// Run immediately on page load and whenever the simulated role drops down changes
-if (roleSimulator) {
-    roleSimulator.addEventListener('change', enforceRoleRestrictions);
-    enforceRoleRestrictions(); 
-}
-
-// Updated Marketplace Form Submission Handler
-const marketForm = document.getElementById('marketForm');
-if (marketForm) {
-    marketForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const action = marketAction ? marketAction.value : 'sell';
-        const name = document.getElementById('productName').value;
-        const price = document.getElementById('productPrice').value;
-        const msgBox = document.getElementById('messageBox');
-
-        if (msgBox) {
-            msgBox.style.display = 'block';
-            msgBox.className = 'message-box info';
-
-            if (currentLang === 'en') {
-                const actionText = action === 'sell' ? 'Listed for Sale' : 'Requested to Buy';
-                msgBox.innerHTML = `<strong>Success!</strong> "${name}" has been ${actionText} at ${price} ETB.`;
-            } else {
-                const actionText = action === 'sell' ? 'Gurgurtaaf dhiyaateera' : 'Bituuf gaafatameera';
-                msgBox.innerHTML = `<strong>Milkaa'ina!</strong> "${name}" gatii ${price} ETB tiin ${actionText}.`;
-            }
-        }
-        marketForm.reset();
-        enforceRoleRestrictions(); // Keep role states intact after clearing form input values
-    });
-}
-
-// 7. Extra Form/Backend Submission Alternative Handler
-async function sendDataToBackend(event) {
-    event.preventDefault();
-    const fullName = document.getElementById('fullName')?.value.trim();
-    const username = document.getElementById('username')?.value.trim();
-    const contact = document.getElementById('contact')?.value.trim();
-    const subCity = document.getElementById('subCity')?.value;
-    const shegerId = document.getElementById('shegerId')?.value.trim();
-    const password = document.getElementById('password')?.value;
-
-    const fileInput = document.getElementById('idCardFile');
-    const idCardName = fileInput?.files[0] ? fileInput.files[0].name : "No file uploaded";
-
-    if (!fullName || !contact || !password) {
-        alert("Maaloo, dura odeeffannoo keessan guutaa!");
-        return;
-    }
-
-    const formData = { fullName, username: username || fullName, contact, subCity, shegerId, idCardName, password };
-
-    try {
-        const response = await fetch('https://qonna-dijitaalaa.onrender.com/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
-        const result = await response.json();
-        if (result.status === "success") { alert(result.message); }
-    } catch (error) {
-        alert("Gara duubaatti qunnamtii uumuu hin dandeenye!");
-    }
-}
-// ============================================================
-// 9. WORKSPACE PROFILE ROUTINES & SESSION MANAGEMENT
-// ============================================================
-
-// Run this initialization automatically every time a page loads up
+// 9. Session Management & 10. Login Routine
 document.addEventListener('DOMContentLoaded', () => {
-    
-    // Check if we are currently standing on the marketplace/workspace layout
+    // Session Guard for Marketplace
     const displayWelcomeName = document.getElementById('displayWelcomeName');
-    
     if (displayWelcomeName) {
-        // Read the user profile string from local memory and convert it back to an object
         const activeUserSession = JSON.parse(localStorage.getItem('activeUser'));
-
-        // Guard Check: If no session data exists, bounce unauthenticated users back to login page
         if (!activeUserSession) {
-            alert("Maaloo dura seeni! / Please login first!");
             window.location.href = "login.html";
             return;
         }
-
-        // Inject saved profile variables dynamically directly into the HTML screen layout
         displayWelcomeName.textContent = activeUserSession.fullName;
-        document.getElementById('profFullName').textContent = activeUserSession.fullName;
-        document.getElementById('profUsername').textContent = activeUserSession.username;
-        document.getElementById('profContact').textContent = activeUserSession.contact;
-        document.getElementById('profSubCity').textContent = activeUserSession.subCity;
-        document.getElementById('profShegerId').textContent = activeUserSession.shegerId;
     }
 
-    // Wiring up the Additional Action Button Event Listener
-    const additionalActionButton = document.getElementById('additionalActionButton');
-    if (additionalActionButton) {
-        additionalActionButton.addEventListener('click', () => {
-            const isOromo = (typeof currentLang !== 'undefined' && currentLang === 'om');
-            
-            // Custom action logic for your platform hub can go right inside here!
-            alert(isOromo 
-                ? "Sirni QonnaAI qophaa'aa jira! Gara daldalaatti cehaa..." 
-                : "Smart Farming core hub initialized! Connecting you to tools...");
-        });
-    }
-
-    // Wiring up the Logout Button Event Listener
+    // Logout Routine
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
-            localStorage.removeItem('activeUser'); // Destroy secure session data token
-            window.location.href = "login.html";   // Kick back to access portal
+            localStorage.removeItem('activeUser');
+            window.location.href = "login.html";
+        });
+    }
+
+    // Login Routine
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const contact = document.getElementById('loginContact').value;
+            const password = document.getElementById('loginPassword').value;
+            const loginMsgBox = document.getElementById('loginMessageBox');
+
+            fetch("https://qonna-dijitaalaa.onrender.com/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contact, password })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Invalid");
+                return response.json();
+            })
+            .then(data => {
+                localStorage.setItem('activeUser', JSON.stringify(data));
+                window.location.href = "marketplace.html"; // Redirection added here
+            })
+            .catch(err => {
+                if (loginMsgBox) loginMsgBox.textContent = "Login Failed";
+            });
         });
     }
 });
-
