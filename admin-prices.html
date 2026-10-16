@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Prices - Qonna Dijitaalawaa Shaggar</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .row { background: white; border-radius: 12px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,.05); text-align: left; }
+        .row h4 { margin: 0 0 2px; color: #2E7D32; }
+        .row small { color: #666; }
+        .line { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+        .line input { flex: 1; min-width: 90px; padding: 10px; border: 1px solid #DCE2DC; border-radius: 8px; font-size: 16px; }
+        .btn { border: none; border-radius: 8px; padding: 10px 14px; color: white; cursor: pointer; font-size: 14px; }
+        .save { background: #2E7D32; }
+        .del { background: #c62828; }
+        .box { background: white; border-radius: 12px; padding: 14px; margin-top: 20px; text-align: left; }
+        .box input, .box select { width: 100%; padding: 12px; margin-bottom: 8px; border: 1px solid #DCE2DC; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        .msg { padding: 10px; border-radius: 8px; margin: 10px 0; display: none; }
+        .msg.ok { background: #E8F5E9; color: #2E7D32; }
+        .msg.bad { background: #FDF2F2; color: #D32F2F; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <div class="nav-brand">🌱 Qonna Dijitaalawaa Shaggar</div>
+        <a href="index.html" class="btn-dash">Home</a>
+    </div>
+
+    <div class="container wide">
+        <h2>Update Market Prices</h2>
+        <div id="msg" class="msg"></div>
+
+        <div id="gate" style="display:none;">
+            <p>Admins only. <a href="login.html" style="color:#2E7D32;font-weight:bold;">Login</a></p>
+        </div>
+
+        <div id="panel" style="display:none;">
+            <select id="cat" class="dropdown" style="margin-bottom:12px;">
+                <option value="seeds">Seeds</option>
+                <option value="materials">Farm Materials</option>
+                <option value="chemicals">Chemicals & Fertilizers</option>
+            </select>
+
+            <div id="list"></div>
+
+            <div class="box">
+                <h3 style="margin-top:0;color:#2E7D32;">Add new item</h3>
+                <select id="newCat">
+                    <option value="seeds">Seeds</option>
+                    <option value="materials">Farm Materials</option>
+                    <option value="chemicals">Chemicals & Fertilizers</option>
+                </select>
+                <input type="text" id="newName" placeholder="Item name (e.g. Teff Magna)">
+                <input type="text" id="newKind" placeholder="Type (optional, e.g. Hand Tool)">
+                <input type="number" id="newPrice" min="1" step="any" placeholder="Price (ETB)">
+                <button type="button" class="btn save" id="addBtn" style="width:100%;">Add item</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = "https://qonna-dijitaalaa.onrender.com";
+        const user = (() => { try { return JSON.parse(localStorage.getItem('activeUser')); } catch (e) { return null; } })();
+        const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g,
+            c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+        let all = [];
+
+        function show(text, ok) {
+            const m = document.getElementById('msg');
+            m.textContent = text;
+            m.className = 'msg ' + (ok ? 'ok' : 'bad');
+            m.style.display = 'block';
+        }
+
+        async function call(path, opts = {}) {
+            const headers = { "Content-Type": "application/json", "Authorization": "Bearer " + (user && user.token ? user.token : "") };
+            const res = await fetch(API + path, { ...opts, headers });
+            let data = {};
+            try { data = await res.json(); } catch (e) { /* ignore */ }
+            if (!res.ok) throw new Error(data.message || "Error");
+            return data;
+        }
+
+        async function load() {
+            const data = await call('/admin/prices');
+            all = data.prices;
+            drawList();
+        }
+
+        function drawList() {
+            const cat = document.getElementById('cat').value;
+            const list = document.getElementById('list');
+            const rows = all.filter(p => p.category === cat);
+            list.innerHTML = rows.length ? "" : "<p>No items in this category.</p>";
+            rows.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'row';
+                div.innerHTML = `
+                    <h4>${esc(p.name)}</h4>
+                    <small>${esc(p.kind || "Standard quality")}</small>
+                    <div class="line">
+                        <input type="number" min="1" step="any" value="${esc(p.price)}" id="p${p.id}">
+                        <span>ETB</span>
+                        <button type="button" class="btn save" data-save="${p.id}">Save</button>
+                        <button type="button" class="btn del" data-del="${p.id}">Delete</button>
+                    </div>`;
+                list.appendChild(div);
+            });
+        }
+
+        document.getElementById('cat').addEventListener('change', drawList);
+
+        document.getElementById('list').addEventListener('click', async e => {
+            const saveId = e.target.dataset.save;
+            const delId = e.target.dataset.del;
+            try {
+                if (saveId) {
+                    const price = document.getElementById('p' + saveId).value;
+                    await call(`/admin/prices/${saveId}`, { method: 'PUT', body: JSON.stringify({ price }) });
+                    show("Saved. Prices updated on the website.", true);
+                    await load();
+                }
+                if (delId && confirm("Delete this item?")) {
+                    await call(`/admin/prices/${delId}`, { method: 'DELETE' });
+                    show("Deleted.", true);
+                    await load();
+                }
+            } catch (err) { show(err.message, false); }
+        });
+
+        document.getElementById('addBtn').addEventListener('click', async () => {
+            try {
+                await call('/admin/prices', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        category: document.getElementById('newCat').value,
+                        name: document.getElementById('newName').value,
+                        kind: document.getElementById('newKind').value,
+                        price: document.getElementById('newPrice').value
+                    })
+                });
+                document.getElementById('newName').value = "";
+                document.getElementById('newKind').value = "";
+                document.getElementById('newPrice').value = "";
+                show("Item added.", true);
+                await load();
+            } catch (err) { show(err.message, false); }
+        });
+
+        if (!user || user.role !== 'admin') {
+            document.getElementById('gate').style.display = 'block';
+        } else {
+            document.getElementById('panel').style.display = 'block';
+            load().catch(err => show(err.message, false));
+        }
+    </script>
+</body>
+      </html>
