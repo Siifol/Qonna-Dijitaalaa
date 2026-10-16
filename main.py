@@ -408,3 +408,14 @@ def admin_update_price(pid):
 def admin_delete_price(pid):
     query("DELETE FROM prices WHERE id = ?", (pid,), commit=True)
     return jsonify({"status": "success"})
+
+@app.route("/listing/<int:lid>", methods=["GET"])
+def get_listing(lid):
+    row = query(
+        "SELECT l.id, l.action, l.category, l.name, l.price, l.quantity, l.unit, "
+        "l.description, u.full_name AS seller, u.sub_city, u.contact "
+        "FROM listings l JOIN users u ON u.id = l.user_id WHERE l.id = ?",
+        (lid,), one=True)
+    if not row:
+        return err("Not found.", "Hin argamne.", 404)
+    return jsonify({"status": "success", "listing": row})
