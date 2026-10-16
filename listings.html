@@ -22,6 +22,7 @@
 
         <div class="filters">
             <input type="text" id="fSearch" data-en-ph="Search item..." data-om-ph="Meeshaa barbaadi..." placeholder="Search item...">
+            <button type="button" id="searchBtn" class="btn-dash" style="border:none;cursor:pointer;font-size:14px;" data-en="Search" data-om="Barbaadi" onclick="document.getElementById('fSearch').dispatchEvent(new Event('input'))">Search</button>
             <select id="fAction" class="dropdown">
                 <option value="" data-en="Buy &amp; Sell" data-om="Hunda">Buy &amp; Sell</option>
                 <option value="sell" data-en="For Sale" data-om="Gurgurtaaf">For Sale</option>
