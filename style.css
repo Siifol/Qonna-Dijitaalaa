@@ -275,3 +275,21 @@ textarea.dropdown { font-family: inherit; resize: vertical; min-height: 70px; }
 .del-btn { margin-top: 10px; background: #c62828; color: white; border: none; border-radius: 8px; padding: 8px 14px; cursor: pointer; }
 .empty { color: #777; padding: 30px 0; }
 .top-links { display: flex; gap: 8px; }
+
+/* Listing cards: clearer layout */
+.listing-card { padding: 16px; margin-bottom: 14px; }
+.listing-card h3 { margin: 6px 0 4px; font-size: 18px; }
+.listing-card .price { margin: 4px 0 8px; font-size: 17px; }
+.listing-card .meta { margin: 4px 0; font-size: 13px; color: #555; line-height: 1.5; }
+.listing-card .desc { margin: 6px 0; font-size: 14px; color: #444; }
+a[href^="listing.html"] {
+    display: inline-block;
+    margin: 10px 0 6px;
+    padding: 8px 14px;
+    background: #2E7D32;
+    color: white !important;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 14px;
+}
