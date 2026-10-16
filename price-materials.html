@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Farm Materials - Qonna Dijitaalawaa Shaggar</title>
+    <title>Farm Materials Prices - Qonna Dijitaalawaa Shaggar</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        .search-bar { width: 100%; padding: 15px; margin-bottom: 20px; border: 2px solid #2E7D32; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
-        .item-card { background: white; padding: 15px; margin-bottom: 10px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .item-info h4 { margin: 0; color: #2E7D32; }
-        .item-info p { margin: 0; font-size: 13px; color: #666; }
-        .price-tag { font-weight: bold; color: #333; }
+        .search-bar { width: 100%; padding: 15px; margin-bottom: 10px; border: 2px solid #2E7D32; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+        .seed-card { background: white; padding: 15px; margin-bottom: 10px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .seed-info h4 { margin: 0; color: #2E7D32; }
+        .seed-info p { margin: 0; font-size: 13px; color: #666; }
+        .price-tag { font-weight: bold; color: #333; white-space: nowrap; }
+        .action-btn { background: #2E7D32; color: white; padding: 8px 12px; border-radius: 8px; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -22,39 +23,14 @@
 
     <div class="container">
         <h2>Farm Materials</h2>
-        <input type="text" id="searchInput" class="search-bar" placeholder="🔍 Search tools (e.g. Plough)...">
-        
-        <div id="materialsListContainer">
-            <!-- Data will be injected here -->
-        </div>
+        <input type="text" id="searchInput" class="search-bar" placeholder="🔍 Search tools (e.g. Sickle, Pump)...">
+        <p id="priceNote" style="font-size:12px;color:#777;"></p>
+        <div id="priceList" data-category="materials"></div>
     </div>
 
+    <script src="seed-data.js"></script>
     <script src="materials-data.js"></script>
-    <script>
-        const searchInput = document.getElementById('searchInput');
-        const container = document.getElementById('materialsListContainer');
-
-        function renderItems(filter = '') {
-            container.innerHTML = '';
-            const filtered = materialsDB.filter(i => i.name.toLowerCase().includes(filter.toLowerCase()));
-            
-            filtered.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'item-card';
-                div.innerHTML = `
-                    <div class="item-info">
-                        <h4>${item.name}</h4>
-                        <p>${item.type}</p>
-                    </div>
-                    <div class="price-tag">${item.price} ETB</div>
-                    <button class="action-btn" onclick="alert('Ordering ${item.name}')">Buy/Sell</button>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        searchInput.addEventListener('input', (e) => renderItems(e.target.value));
-        renderItems();
-    </script>
+    <script src="chemicals-data.js"></script>
+    <script src="price-list.js"></script>
 </body>
 </html>
