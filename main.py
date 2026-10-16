@@ -347,3 +347,64 @@ init_db()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    # ---------------------------------------------------------------------------
+# Admin: edit market prices (only users whose role is "admin")
+# ---------------------------------------------------------------------------
+def admin_required(fn):
+    @wraps(fn)
+    def wrapper(*a, **kw):
+        if g.user["role"] != "admin":
+            return err("Admins only.", "Bitamtoota qofa.", 403)
+        return fn(*a, **kw)
+    return wrapper
+
+
+@app.route("/admin/prices", methods=["GET"])
+@login_required
+@admin_required
+def admin_list_prices():
+    rows = query("SELECT id, category, name, kind, price FROM prices ORDER BY category, id")
+    return jsonify({"status": "success", "prices": rows})
+
+
+@app.route("/admin/prices", methods=["POST"])
+@login_required
+@admin_required
+def admin_add_price():
+    d = request.get_json(silent=True) or {}
+    cat = d.get("category")
+    name = (d.get("name") or "").strip()
+    kind = (d.get("kind") or "").strip() or None
+    try:
+        price = float(d.get("price"))
+    except (TypeError, ValueError):
+        return err("Price must be a number.", "Gatiin lakkoofsa ta'uu qaba.")
+    if cat not in PRICE_SEED or not name or price <= 0:
+        return err("Please fill in the form correctly.", "Maaloo unka sirriitti guuti.")
+    query("INSERT INTO prices (category, name, kind, price) VALUES (?,?,?,?)",
+          (cat, name[:120], kind, price), commit=True)
+    return jsonify({"status": "success", "message": "Added. / Dabalameera."})
+
+
+@app.route("/admin/prices/<int:pid>", methods=["PUT"])
+@login_required
+@admin_required
+def admin_update_price(pid):
+    d = request.get_json(silent=True) or {}
+    try:
+        price = float(d.get("price"))
+    except (TypeError, ValueError):
+        return err("Price must be a number.", "Gatiin lakkoofsa ta'uu qaba.")
+    if price <= 0:
+        return err("Price must be above 0.", "Gatiin 0 caalaa ta'uu qaba.")
+    query("UPDATE prices SET price = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+          (price, pid), commit=True)
+    return jsonify({"status": "success", "message": "Saved. / Kuufameera."})
+
+
+@app.route("/admin/prices/<int:pid>", methods=["DELETE"])
+@login_required
+@admin_required
+def admin_delete_price(pid):
+    query("DELETE FROM prices WHERE id = ?", (pid,), commit=True)
+    return jsonify({"status": "success"})
