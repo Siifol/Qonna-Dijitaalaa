@@ -277,6 +277,72 @@ def delete_listing(lid):
     return jsonify({"status": "success"})
 
 
+# ---------------------------------------------------------------------------
+# Market prices (public). The owner edits prices in Supabase Table Editor
+# (table "prices"): change the "price" column and the page updates.
+# ---------------------------------------------------------------------------
+PRICE_SEED = {
+    "seeds": [
+        ("Teff (Quncho)", None, 14500), ("Teff (Magna)", None, 13200),
+        ("Wheat (Improved)", None, 6800), ("Maize (Hybrid)", None, 4900),
+        ("Barley (Food)", None, 5200), ("Sorghum (White)", None, 4400),
+        ("Chickpea (Kabuli)", None, 8200), ("Haricot Bean", None, 7500),
+        ("Lentils (Red)", None, 9800), ("Sesame (White)", None, 18500),
+        ("Niger Seed (Neug)", None, 12000), ("Linseed (Telba)", None, 11500),
+        ("Faba Bean", None, 6400), ("Field Pea", None, 6100),
+    ],
+    "materials": [
+        ("Maresha (Ox-Plough)", "Traditional Tool", 2800), ("Sickle (Haamtuu)", "Hand Tool", 450),
+        ("Shovel (Doqqee)", "Hand Tool", 750), ("Hand Sprayer (15L)", "Pest Control", 2200),
+        ("Water Pump (Manual)", "Irrigation", 5500), ("Weeding Fork", "Hand Tool", 500),
+        ("Wheelbarrow", "Transport", 3200), ("Machete (Billa)", "Hand Tool", 600),
+        ("Sieve (Tessessa)", "Post-Harvest", 350),
+    ],
+    "chemicals": [
+        ("DAP Fertilizer", "Fertilizer (50kg)", 3800), ("Urea Fertilizer", "Fertilizer (50kg)", 3400),
+        ("NPS Fertilizer", "Fertilizer (50kg)", 4100), ("Malathion", "Pesticide (1L)", 1800),
+        ("Glyphosate", "Herbicide (1L)", 1400), ("2,4-D", "Herbicide (1L)", 950),
+        ("Copper Fungicide", "Fungicide (1kg)", 2200), ("Select Fertilizer", "Fertilizer (50kg)", 3600),
+    ],
+}
+
+
+def init_prices():
+    pk = "SERIAL PRIMARY KEY" if USE_PG else "INTEGER PRIMARY KEY AUTOINCREMENT"
+    ts = "TIMESTAMPTZ DEFAULT now()" if USE_PG else "TEXT DEFAULT CURRENT_TIMESTAMP"
+    with app.app_context():
+        db = get_db()
+        cur = db.cursor()
+        cur.execute(f"""CREATE TABLE IF NOT EXISTS prices (
+            id {pk},
+            category TEXT NOT NULL,
+            name TEXT NOT NULL,
+            kind TEXT,
+            price REAL NOT NULL,
+            updated_at {ts}
+        )""")
+        db.commit()
+        cur.close()
+        if not query("SELECT id FROM prices LIMIT 1", one=True):
+            for cat, items in PRICE_SEED.items():
+                for name, kind, price in items:
+                    query("INSERT INTO prices (category, name, kind, price) VALUES (?,?,?,?)",
+                          (cat, name, kind, price), commit=True)
+
+
+@app.route("/prices", methods=["GET"])
+def get_prices():
+    cat = request.args.get("category", "")
+    if cat not in PRICE_SEED:
+        return err("Unknown category.", "Ramaddii hin beekamne.")
+    rows = query("SELECT name, kind, price, updated_at FROM prices WHERE category = ? ORDER BY id", (cat,))
+    return jsonify({"status": "success", "prices": [
+        {"name": r["name"], "kind": r["kind"], "price": r["price"],
+         "updatedAt": str(r["updated_at"])[:16]} for r in rows]})
+
+
+init_prices()
+
 init_db()
 
 if __name__ == "__main__":
