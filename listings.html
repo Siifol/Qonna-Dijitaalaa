@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Product - Qonna Dijitaalawaa Shaggar</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="navbar">
+        <div class="nav-brand">🌱 Qonna Dijitaalawaa Shaggar</div>
+        <div class="top-links">
+            <button id="langBtn" class="btn-dash" style="border:none;cursor:pointer;">Afaan Oromoo</button>
+            <a href="listings.html" class="btn-dash" data-en="Browse" data-om="Ilaali">Browse</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2 data-en="Post to Marketplace" data-om="Gabaatti Ergi">Post to Marketplace</h2>
+
+        <form id="productForm">
+            <div id="actionWrapper">
+                <label style="font-weight: bold; display:block; margin-bottom: 8px;" data-en="I want to:" data-om="Ani kan barbaadu:">I want to:</label>
+                <select id="marketAction" required class="dropdown">
+                    <option value="sell" data-en="Sell / Offer" data-om="Gurguruu / Dhiyeessuu">Sell / Offer</option>
+                    <option value="buy" id="buyOption" data-en="Buy / Request" data-om="Bituu / Gaafachuu">Buy / Request</option>
+                </select>
+            </div>
+
+            <select id="itemCategory" required class="dropdown">
+                <option value="" disabled selected data-en="Select Category" data-om="Ramaddii Filadhu">Select Category</option>
+                <option value="seeds" data-en="Seeds (Wheat, Maize, Teff...)" data-om="Sanyii (Qamadii, Boqqolloo, Xaafii...)">Seeds</option>
+                <option value="materials" data-en="Farm Materials & Tools" data-om="Meeshaalee fi Meeshaa Qonnaa">Farm Materials & Tools</option>
+                <option value="fertilizer" data-en="Fertilizers & Nutrients" data-om="Xaa'oo fi Soogidda">Fertilizers</option>
+                <option value="produce" data-en="Fresh Harvest / Crop" data-om="Midhaan Oomishame">Fresh Harvest / Crop</option>
+            </select>
+
+            <input type="text" id="productName" maxlength="120" data-en-ph="Item Name (e.g. Improved Maize Seed)" data-om-ph="Maqaa Meeshaa (fkn. Sanyii Boqqolloo Fooyya'e)" placeholder="Item Name" required>
+
+            <input type="number" id="productPrice" min="1" step="any" data-en-ph="Price per unit (ETB)" data-om-ph="Gatii tokkoof (ETB)" placeholder="Price per unit (ETB)" required>
+
+            <input type="number" id="productQuantity" min="0" step="any" data-en-ph="Quantity (optional)" data-om-ph="Baay'ina (filannoo)" placeholder="Quantity (optional)">
+
+            <select id="productUnit" class="dropdown">
+                <option value="" data-en="Unit (optional)" data-om="Safartuu (filannoo)">Unit (optional)</option>
+                <option value="kg">kg</option>
+                <option value="quintal" data-en="quintal" data-om="kuntaala">quintal</option>
+                <option value="piece" data-en="piece" data-om="tokko tokko">piece</option>
+                <option value="liter" data-en="liter" data-om="liitira">liter</option>
+                <option value="bag" data-en="bag" data-om="closhii">bag</option>
+            </select>
+
+            <textarea id="productDescription" class="dropdown" maxlength="500" data-en-ph="Short description (optional)" data-om-ph="Ibsa gabaabaa (filannoo)" placeholder="Short description (optional)"></textarea>
+
+            <div id="messageBox" class="message-box"></div>
+
+            <button type="submit" id="submitBtn" data-en="Post to Marketplace" data-om="Gabaatti Ergi">Post to Marketplace</button>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
