@@ -97,8 +97,7 @@ def add_cors(resp):
     resp.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
     resp.headers["Access-Control-Allow-Methods"] = "GET, POST, DELETE, OPTIONS"
     return resp
-
-
+    resp.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
 @app.route("/<path:_p>", methods=["OPTIONS"])
 @app.route("/", methods=["OPTIONS"])
 def preflight(_p=None):
