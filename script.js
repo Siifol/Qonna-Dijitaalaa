@@ -208,6 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="listing-top"><span class="tag ${l.action}">${tag}</span>
                     <span class="cat">${esc(catLabel(l.category))}</span></div>
                     <h3>${esc(l.name)}</h3>
+                                        <p class="meta"><a href="listing.html?id=${l.id}">View details · Ibsa ilaali →</a></p>
                     <p class="price">${esc(l.price)} ETB ${qty ? "· " + qty : ""}</p>
                     ${l.description ? `<p class="desc">${esc(l.description)}</p>` : ""}
                     <p class="meta">👤 ${esc(l.owner.fullName)} · 📍 ${esc(l.owner.subCity)} · ${esc(l.createdAt)}</p>
