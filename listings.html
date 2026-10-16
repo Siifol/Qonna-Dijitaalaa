@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Post Product - Qonna Dijitaalawaa Shaggar</title>
+    <title>Marketplace - Qonna Dijitaalawaa Shaggar</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,51 +12,47 @@
         <div class="nav-brand">🌱 Qonna Dijitaalawaa Shaggar</div>
         <div class="top-links">
             <button id="langBtn" class="btn-dash" style="border:none;cursor:pointer;">Afaan Oromoo</button>
-            <a href="listings.html" class="btn-dash" data-en="Browse" data-om="Ilaali">Browse</a>
+            <a href="post-product.html" class="btn-dash" data-en="+ Post" data-om="+ Ergi">+ Post</a>
+            <a href="index.html" class="btn-dash" data-en="Home" data-om="Mana">Home</a>
         </div>
     </div>
 
-    <div class="container">
-        <h2 data-en="Post to Marketplace" data-om="Gabaatti Ergi">Post to Marketplace</h2>
+    <div class="container wide">
+        <h2 data-en="Marketplace" data-om="Gabaa">Marketplace</h2>
 
-        <form id="productForm">
-            <div id="actionWrapper">
-                <label style="font-weight: bold; display:block; margin-bottom: 8px;" data-en="I want to:" data-om="Ani kan barbaadu:">I want to:</label>
-                <select id="marketAction" required class="dropdown">
-                    <option value="sell" data-en="Sell / Offer" data-om="Gurguruu / Dhiyeessuu">Sell / Offer</option>
-                    <option value="buy" id="buyOption" data-en="Buy / Request" data-om="Bituu / Gaafachuu">Buy / Request</option>
-                </select>
-            </div>
-
-            <select id="itemCategory" required class="dropdown">
-                <option value="" disabled selected data-en="Select Category" data-om="Ramaddii Filadhu">Select Category</option>
-                <option value="seeds" data-en="Seeds (Wheat, Maize, Teff...)" data-om="Sanyii (Qamadii, Boqqolloo, Xaafii...)">Seeds</option>
-                <option value="materials" data-en="Farm Materials & Tools" data-om="Meeshaalee fi Meeshaa Qonnaa">Farm Materials & Tools</option>
-                <option value="fertilizer" data-en="Fertilizers & Nutrients" data-om="Xaa'oo fi Soogidda">Fertilizers</option>
-                <option value="produce" data-en="Fresh Harvest / Crop" data-om="Midhaan Oomishame">Fresh Harvest / Crop</option>
+        <div class="filters">
+            <input type="text" id="fSearch" data-en-ph="Search item..." data-om-ph="Meeshaa barbaadi..." placeholder="Search item...">
+            <select id="fAction" class="dropdown">
+                <option value="" data-en="Buy &amp; Sell" data-om="Hunda">Buy &amp; Sell</option>
+                <option value="sell" data-en="For Sale" data-om="Gurgurtaaf">For Sale</option>
+                <option value="buy" data-en="Wanted" data-om="Kan Barbaadamu">Wanted</option>
             </select>
-
-            <input type="text" id="productName" maxlength="120" data-en-ph="Item Name (e.g. Improved Maize Seed)" data-om-ph="Maqaa Meeshaa (fkn. Sanyii Boqqolloo Fooyya'e)" placeholder="Item Name" required>
-
-            <input type="number" id="productPrice" min="1" step="any" data-en-ph="Price per unit (ETB)" data-om-ph="Gatii tokkoof (ETB)" placeholder="Price per unit (ETB)" required>
-
-            <input type="number" id="productQuantity" min="0" step="any" data-en-ph="Quantity (optional)" data-om-ph="Baay'ina (filannoo)" placeholder="Quantity (optional)">
-
-            <select id="productUnit" class="dropdown">
-                <option value="" data-en="Unit (optional)" data-om="Safartuu (filannoo)">Unit (optional)</option>
-                <option value="kg">kg</option>
-                <option value="quintal" data-en="quintal" data-om="kuntaala">quintal</option>
-                <option value="piece" data-en="piece" data-om="tokko tokko">piece</option>
-                <option value="liter" data-en="liter" data-om="liitira">liter</option>
-                <option value="bag" data-en="bag" data-om="closhii">bag</option>
+            <select id="fCategory" class="dropdown">
+                <option value="" data-en="All Categories" data-om="Ramaddii Hunda">All Categories</option>
+                <option value="seeds" data-en="Seeds" data-om="Sanyii">Seeds</option>
+                <option value="materials" data-en="Materials & Tools" data-om="Meeshaalee">Materials & Tools</option>
+                <option value="fertilizer" data-en="Fertilizers" data-om="Xaa'oo">Fertilizers</option>
+                <option value="produce" data-en="Fresh Harvest" data-om="Midhaan">Fresh Harvest</option>
             </select>
+            <select id="fSubCity" class="dropdown">
+                <option value="" data-en="All Sub-cities" data-om="Kutaa Hunda">All Sub-cities</option>
+                <option value="melka_nono">Melka Nono</option>
+                <option value="furi">Furi</option>
+                <option value="sebeta">Sebeta</option>
+                <option value="eka_tafo">Eka Tafo</option>
+                <option value="galan">Galan</option>
+                <option value="galan_guda">Galan Guda</option>
+                <option value="gafarsa_guje">Gafarsa Guje</option>
+                <option value="kura_jida">Kura Jida</option>
+                <option value="koye_feche">Koye feche</option>
+                <option value="mana_abichu">Mana Abichu</option>
+                <option value="sululta">Sululta</option>
+                <option value="burayu">Burayu</option>
+            </select>
+            <label><input type="checkbox" id="fMine"> <span data-en="My posts only" data-om="Kan koo qofa">My posts only</span></label>
+        </div>
 
-            <textarea id="productDescription" class="dropdown" maxlength="500" data-en-ph="Short description (optional)" data-om-ph="Ibsa gabaabaa (filannoo)" placeholder="Short description (optional)"></textarea>
-
-            <div id="messageBox" class="message-box"></div>
-
-            <button type="submit" id="submitBtn" data-en="Post to Marketplace" data-om="Gabaatti Ergi">Post to Marketplace</button>
-        </form>
+        <div id="listingsBox"></div>
     </div>
 
     <script src="script.js"></script>
