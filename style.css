@@ -235,3 +235,43 @@ input:focus, .dropdown:focus {
     color: #1b5e20;
     text-decoration: underline;
 }
+.message-box.success {
+    background-color: #E8F5E9;
+    color: #2E7D32;
+    border: 1px solid #C8E6C9;
+}
+#submitBtn:disabled { opacity: .6; cursor: wait; }
+textarea.dropdown { font-family: inherit; resize: vertical; min-height: 70px; }
+
+/* ===== Marketplace listings ===== */
+.wide { max-width: 720px; }
+.filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+    text-align: left;
+}
+.filters label { font-size: 14px; display: flex; align-items: center; gap: 6px; }
+.listing-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
+    text-align: left;
+    box-shadow: 0 3px 10px rgba(0,0,0,.06);
+    border-left: 4px solid #2E7D32;
+}
+.listing-card h3 { margin: 8px 0 4px; font-size: 18px; color: #1b5e20; }
+.listing-card .price { font-weight: bold; margin: 0 0 6px; }
+.listing-card .desc { margin: 0 0 8px; color: #555; font-size: 14px; }
+.listing-card .meta { margin: 2px 0; font-size: 13px; color: #666; }
+.listing-card .meta a { color: #1565c0; }
+.listing-top { display: flex; justify-content: space-between; align-items: center; }
+.tag { font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 10px; color: white; }
+.tag.sell { background: #2E7D32; }
+.tag.buy { background: #1565c0; }
+.cat { font-size: 12px; color: #777; }
+.del-btn { margin-top: 10px; background: #c62828; color: white; border: none; border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+.empty { color: #777; padding: 30px 0; }
+.top-links { display: flex; gap: 8px; }
