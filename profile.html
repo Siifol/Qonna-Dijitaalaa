@@ -440,7 +440,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
     });
     store.set("activeUser", { token: d.token, id: d.id, uid: d.id, role: d.role,
       fullName: d.fullName, username: d.username });
-    document.getElementById("loginPass").value = "";
+    document.getElementById("loginPass").value = ""; goNext();
     note("guestMsg", "", true);
     showUser(await api("/profile"));
   } catch (err) {
@@ -562,6 +562,12 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
   note("guestMsg", T_("loggedOut"), true);
 });
 
+// After login, go back to the page the user was trying to open (from auth-gate.js)
+function goNext() {
+  const next = new URLSearchParams(location.search).get("next");
+  if (next && /^[a-z-]+\.html$/.test(next)) location.replace(next);
+}
+
 // ---- start ----
 async function init() {
   applyLang();
@@ -578,4 +584,4 @@ async function init() {
 init();
 </script>
 </body>
-    </html>
+</html>
