@@ -9,6 +9,7 @@
         .detail { background: white; border-radius: 14px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,.06); text-align: left; }
         .detail h2 { margin: 8px 0 4px; color: #2E7D32; }
         .price { font-size: 26px; font-weight: bold; color: #2E7D32; margin: 10px 0; }
+        .price small { font-size: 15px; font-weight: normal; color: #555; }
         .row { padding: 10px 0; border-bottom: 1px solid #eee; color: #333; font-size: 15px; }
         .row b { color: #555; display: block; font-size: 13px; font-weight: normal; }
         .actions { display: flex; gap: 10px; margin-top: 18px; }
@@ -54,21 +55,21 @@
         let current = null;
 
         const T = {
-            en: { back: "Back", call: "📞 Call", sms: "💬 SMS", seller: "Seller", area: "Sub-city", qty: "Quantity",
-                  cat: "Category", details: "Details", posted: "Posted on", sell: "Selling", buy: "Buying",
+            en: { back: "Back", call: "📞 Call", sms: "💬 SMS", seller: "Seller", contact: "Contact", area: "Sub-city", total: "Total for sale",
+                  cat: "Category", details: "Details", posted: "Posted on", sell: "Selling", buy: "Buying", per: "per",
                   loading: "Loading...", notFound: "Listing not found.", error: "Could not load. Please try again.",
                   noContact: "No phone number given.", switchTo: "Afaan Oromoo",
                   offerTitle: "Make an offer or ask for a discount", kind: "Request type", kindOffer: "Make an offer",
-                  kindDiscount: "Ask for a discount", amount: "Your price (ETB)", message: "Message (optional)",
-                  send: "Send request", login: "Log in to send a request.", loginLink: "Log in",
+                  kindDiscount: "Ask for a discount", amountLabel: u => `Your price per ${u} (ETB)`,
+                  message: "Message (optional)", send: "Send request", login: "Log in to send a request.", loginLink: "Log in",
                   sent: "Request sent.", failed: "Could not send. Please try again.", own: "This is your own listing." },
-            om: { back: "Duubatti", call: "📞 Bilbili", sms: "💬 SMS", seller: "Gurguruu", area: "Naannoo", qty: "Baay'ina",
-                  cat: "Gosa", details: "Ibsa", posted: "Guyyaa galmeessame", sell: "Gurguruu", buy: "Bitaa",
+            om: { back: "Duubatti", call: "📞 Bilbili", sms: "💬 SMS", seller: "Gurguruu", contact: "Quunnamtii", area: "Naannoo", total: "Waliigala gurguramu",
+                  cat: "Gosa", details: "Ibsa", posted: "Guyyaa galmeessame", sell: "Gurguruu", buy: "Bitaa", per: "tokkoof",
                   loading: "Fe'aa jira...", notFound: "Oduun kun hin argamne.", error: "Fe'uun hin danda'amne. Irra deebi'ii yaali.",
                   noContact: "Lakkoofsi bilbilaa hin kennamne.", switchTo: "English",
                   offerTitle: "Gatii kennii ykn rifeensa gaafadhu", kind: "Gosa gaaffii", kindOffer: "Gatii kennii",
-                  kindDiscount: "Rifeensa gaafadhu", amount: "Gatii keessan (ETB)", message: "Ergaa (filannoo)",
-                  send: "Gaaffii ergi", login: "Gaaffii erguuf seenaa.", loginLink: "Seeni",
+                  kindDiscount: "Rifeensa gaafadhu", amountLabel: u => `Gatii keessan ${u} tokkoof (ETB)`,
+                  message: "Ergaa (filannoo)", send: "Gaaffii ergi", login: "Gaaffii erguuf seenaa.", loginLink: "Seeni",
                   sent: "Gaaffiin ergameera.", failed: "Ergamuu hin danda'amne. Irra deebi'ii yaali.", own: "Oduun kee kana." }
         };
         const CATS = {
@@ -96,10 +97,11 @@
             const o = l.owner || {};
             const tr = T[lang];
             const user = getUser();
+            const unit = l.unit || "unit";
             const phone = String(o.contact || "").replace(/\s+/g, "");
             const isPhone = /^[+\d-]+$/.test(phone) && phone.length > 0;
             const cat = CATS[l.category] ? CATS[l.category][lang] : l.category;
-            const qty = l.quantity ? `${esc(l.quantity)} ${esc(l.unit || "")}` : "-";
+            const total = l.quantity ? `${esc(l.quantity)} ${esc(unit)}` : "-";
             const isMine = user && String(o.id) === String(user.uid || user.id);
 
             const contactHtml = isPhone
@@ -107,7 +109,7 @@
                        <a class="call" href="tel:${encodeURIComponent(phone)}">${tr.call}</a>
                        <a class="sms" href="sms:${encodeURIComponent(phone)}">${tr.sms}</a>
                    </div>`
-                : `<div class="row"><b>${tr.seller}</b>${esc(o.contact || tr.noContact)}</div>`;
+                : `<div class="row"><b>${tr.contact}</b>${esc(o.contact || tr.noContact)}</div>`;
 
             document.title = l.name + " - Qonna";
             document.getElementById("backLink").textContent = tr.back;
@@ -117,8 +119,8 @@
             box.innerHTML = `
                 <span class="tag ${l.action === "sell" ? "sell" : "buy"}">${l.action === "sell" ? tr.sell : tr.buy}</span>
                 <h2>${esc(l.name)}</h2>
-                <div class="price">${esc(l.price)} ETB</div>
-                <div class="row"><b>${tr.qty}</b>${qty}</div>
+                <div class="price">${esc(l.price)} ETB <small>${tr.per} ${esc(unit)}</small></div>
+                <div class="row"><b>${tr.total}</b>${total}</div>
                 <div class="row"><b>${tr.cat}</b>${esc(cat)}</div>
                 <div class="row"><b>${tr.details}</b>${esc(l.description || "-")}</div>
                 <div class="row"><b>${tr.seller}</b>${esc(o.fullName || "-")}</div>
@@ -126,10 +128,10 @@
                 <div class="row"><b>${tr.posted}</b>${esc(l.createdAt || "-")}</div>
                 ${contactHtml}`;
 
-            renderOffer(user, isMine);
+            renderOffer(user, isMine, unit);
         }
 
-        function renderOffer(user, isMine) {
+        function renderOffer(user, isMine, unit) {
             const tr = T[lang];
             if (isMine) {
                 offerArea.innerHTML = `<div class="offer-box"><p>${tr.own}</p></div>`;
@@ -147,7 +149,7 @@
                         <option value="offer">${tr.kindOffer}</option>
                         <option value="discount">${tr.kindDiscount}</option>
                     </select>
-                    <label for="amount">${tr.amount}</label>
+                    <label for="amount">${tr.amountLabel(esc(unit))}</label>
                     <input id="amount" type="number" min="1" step="any">
                     <label for="message">${tr.message}</label>
                     <textarea id="message" rows="3" maxlength="300"></textarea>
@@ -191,7 +193,7 @@
             if (!id) { show(T[lang].notFound); return; }
             show(T[lang].loading);
             try {
-                let user = getUser();
+                const user = getUser();
                 const headers = user && user.token ? { Authorization: "Bearer " + user.token } : {};
                 const res = await fetch(API + "/listings", { headers });
                 const data = await res.json();
