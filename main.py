@@ -513,19 +513,21 @@ def respond_offer(oid):
     query("UPDATE offers SET status = ? WHERE id = ?", (status, oid), commit=True)
     return jsonify({"status": "success"})
     # ---------------------------------------------------------------------------
-# Profile: view and change real name, username, password and ID photo
+# Profile: view and change real name, username, password,
+# profile photo (public) and ID card photo (private)
 # ---------------------------------------------------------------------------
 def init_profile():
     init_db()  # safe to run again: only creates tables that are missing
     with app.app_context():
         db = get_db()
         cur = db.cursor()
-        try:
-            cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS id_photo TEXT"
-                        if USE_PG else "ALTER TABLE users ADD COLUMN id_photo TEXT")
-            db.commit()
-        except Exception:
-            db.rollback()  # column already exists
+        for col in ("id_photo", "profile_photo"):
+            try:
+                cur.execute(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col} TEXT"
+                            if USE_PG else f"ALTER TABLE users ADD COLUMN {col} TEXT")
+                db.commit()
+            except Exception:
+                db.rollback()  # column already exists
         cur.close()
 
 
@@ -533,7 +535,21 @@ init_profile()
 
 
 def profile_out(u):
-    return {"status": "success", **public_user(u), "idPhoto": u.get("id_photo") or ""}
+    return {"status": "success", **public_user(u),
+            "idPhoto": u.get("id_photo") or "",
+            "profilePhoto": u.get("profile_photo") or ""}
+
+
+def photo_field(d, key, current):
+    """Returns (new_value, ok). A missing key keeps the current photo; an empty value removes it."""
+    if key not in d:
+        return current, True
+    new = d.get(key) or ""
+    if new == "":
+        return None, True
+    if not str(new).startswith("data:image/") or len(new) > 600000:
+        return current, False
+    return new, True
 
 
 @app.route("/profile", methods=["GET"])
@@ -569,21 +585,17 @@ def profile_update():
             return err("New password is too weak.", "Jechi iccitii haaraa laafaa dha.")
         pw_hash = generate_password_hash(new_pw)
 
-    photo = u.get("id_photo")
-    if "idPhoto" in d:
-        new = d.get("idPhoto") or ""
-        if new == "":
-            photo = None
-        elif not str(new).startswith("data:image/") or len(new) > 600000:
-            return err("Photo must be an image under about 400 KB.",
-                       "Suuraan suuraa ta'uu qaba, hanga 400 KB.")
-        else:
-            photo = new
+    id_photo, ok1 = photo_field(d, "idPhoto", u.get("id_photo"))
+    profile_photo, ok2 = photo_field(d, "profilePhoto", u.get("profile_photo"))
+    if not (ok1 and ok2):
+        return err("Photo must be an image under about 400 KB.",
+                   "Suuraan suuraa ta'uu qaba, hanga 400 KB.")
 
-    query("""UPDATE users SET full_name = ?, username = ?, password_hash = ?, id_photo = ?
-             WHERE id = ?""", (full_name, username, pw_hash, photo, u["id"]), commit=True)
+    query("""UPDATE users SET full_name = ?, username = ?, password_hash = ?,
+             id_photo = ?, profile_photo = ? WHERE id = ?""",
+          (full_name, username, pw_hash, id_photo, profile_photo, u["id"]), commit=True)
 
     u2 = dict(u)
-    u2.update({"full_name": full_name, "username": username,
-               "password_hash": pw_hash, "id_photo": photo})
+    u2.update({"full_name": full_name, "username": username, "password_hash": pw_hash,
+               "id_photo": id_photo, "profile_photo": profile_photo})
     return jsonify(profile_out(u2))
