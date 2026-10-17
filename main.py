@@ -425,3 +425,90 @@ def get_listing(lid):
     if not row:
         return err("Not found.", "Hin argamne.", 404)
     return jsonify({"status": "success", "listing": row})
+
+# ---------------------------------------------------------------------------
+# Offers and discount requests
+# ---------------------------------------------------------------------------
+def init_offers():
+    pk = "SERIAL PRIMARY KEY" if USE_PG else "INTEGER PRIMARY KEY AUTOINCREMENT"
+    ts = "TIMESTAMPTZ DEFAULT now()" if USE_PG else "TEXT DEFAULT CURRENT_TIMESTAMP"
+    with app.app_context():
+        db = get_db()
+        cur = db.cursor()
+        cur.execute(f"""CREATE TABLE IF NOT EXISTS offers (
+            id {pk},
+            listing_id INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+            buyer_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            kind TEXT NOT NULL,
+            amount REAL NOT NULL,
+            message TEXT,
+            status TEXT NOT NULL DEFAULT 'pending',
+            created_at {ts}
+        )""")
+        db.commit()
+        cur.close()
+
+
+init_offers()
+
+
+@app.route("/listings/<int:lid>/offers", methods=["POST"])
+@login_required
+def make_offer(lid):
+    d = request.get_json(silent=True) or {}
+    kind = d.get("kind")
+    if kind not in ("offer", "discount"):
+        return err("Invalid request type.", "Gosa gaaffii sirrii hin taane.")
+    try:
+        amount = float(d.get("amount"))
+    except (TypeError, ValueError):
+        return err("Enter a valid price.", "Gatii sirrii galchi.")
+    if amount <= 0:
+        return err("Price must be above 0.", "Gatiin 0 caalaa ta'uu qaba.")
+    message = (d.get("message") or "").strip()[:300]
+    listing = query("SELECT id, user_id FROM listings WHERE id = ?", (lid,), one=True)
+    if not listing:
+        return err("Listing not found.", "Oduun hin argamne.", 404)
+    if listing["user_id"] == g.user["id"]:
+        return err("You cannot make an offer on your own listing.",
+                   "Gurguruu kee irratti gaaffii kennuu hin dandeessu.")
+    query("INSERT INTO offers (listing_id, buyer_id, kind, amount, message) VALUES (?,?,?,?,?)",
+          (lid, g.user["id"], kind, amount, message), commit=True)
+    return jsonify({"status": "success", "message": "Sent. / Ergameera."})
+
+
+@app.route("/offers/received", methods=["GET"])
+@login_required
+def offers_received():
+    rows = query("""SELECT o.id, o.listing_id, l.name AS listing_name, o.kind, o.amount,
+                    o.message, o.status, o.created_at, u.full_name AS buyer_name,
+                    u.contact AS buyer_contact
+                    FROM offers o JOIN listings l ON l.id = o.listing_id
+                    JOIN users u ON u.id = o.buyer_id
+                    WHERE l.user_id = ? ORDER BY o.id DESC""", (g.user["id"],))
+    return jsonify({"status": "success", "offers": rows})
+
+
+@app.route("/offers/sent", methods=["GET"])
+@login_required
+def offers_sent():
+    rows = query("""SELECT o.id, o.listing_id, l.name AS listing_name, o.kind, o.amount,
+                    o.status, o.created_at
+                    FROM offers o JOIN listings l ON l.id = o.listing_id
+                    WHERE o.buyer_id = ? ORDER BY o.id DESC""", (g.user["id"],))
+    return jsonify({"status": "success", "offers": rows})
+
+
+@app.route("/offers/<int:oid>", methods=["PUT"])
+@login_required
+def respond_offer(oid):
+    d = request.get_json(silent=True) or {}
+    status = d.get("status")
+    if status not in ("accepted", "declined"):
+        return err("Invalid status.", "Haala sirrii hin taane.")
+    row = query("""SELECT o.id FROM offers o JOIN listings l ON l.id = o.listing_id
+                   WHERE o.id = ? AND l.user_id = ?""", (oid, g.user["id"]), one=True)
+    if not row:
+        return err("Not allowed.", "Hin hayyamamu.", 403)
+    query("UPDATE offers SET status = ? WHERE id = ?", (status, oid), commit=True)
+    return jsonify({"status": "success"})
