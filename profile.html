@@ -23,6 +23,7 @@
   input, select { width:100%; padding:11px; border:1px solid var(--line); border-radius:10px; font-size:16px; background:var(--card); color:var(--text); }
   .hint { font-size:12px; color:var(--muted); margin:4px 0 0; }
   .btn { width:100%; margin-top:14px; padding:12px; border:0; border-radius:10px; background:var(--green); color:#fff; font-size:16px; font-weight:bold; cursor:pointer; }
+  .btn.first { margin-top:0; }
   .btn.danger { background:var(--red); }
   .btn.small { width:auto; margin-top:8px; padding:6px 12px; font-size:13px; background:transparent; color:var(--red); border:1px solid var(--red); }
   .tabs { display:flex; gap:8px; margin-bottom:6px; }
@@ -50,7 +51,7 @@
 
 <main>
 
-  <!-- LOGGED OUT: register first, then login -->
+  <!-- LOGGED OUT: login or register -->
   <section id="guestBox" class="hidden">
     <div class="card">
       <div class="tabs">
@@ -94,7 +95,7 @@
     </div>
   </section>
 
-  <!-- LOGGED IN: settings and logout -->
+  <!-- LOGGED IN -->
   <section id="userBox" class="hidden">
     <div class="card who">
       <div class="avatar" id="avatar">👤</div>
@@ -109,6 +110,10 @@
     </div>
 
     <div class="card">
+      <button class="btn first" id="toggleSettings" type="button">Settings</button>
+    </div>
+
+    <div class="card hidden" id="settingsCard">
       <h2 id="setTitle">Settings</h2>
       <form id="setForm">
         <label id="lblSetFull">Full name</label>
@@ -135,7 +140,7 @@
     </div>
 
     <div class="card">
-      <button class="btn danger" id="logoutBtn">Logout</button>
+      <button class="btn danger first" id="logoutBtn">Logout</button>
     </div>
   </section>
 
@@ -151,9 +156,9 @@ const T = {
     subCity: "Sub-city", sheger: "Sheger ID", idName: "Name on ID card (optional)", role: "I am a",
     farmer: "Farmer", supplier: "Supplier", regNow: "Create account",
     pwRule: "At least 8 characters, with a letter, a number and a symbol.",
-    settings: "Settings", photo: "ID / profile photo", remove: "Remove photo",
-    pwHead: "Change password (leave empty to keep)", curPw: "Current password",
-    newPw: "New password", save: "Save changes", logout: "Logout",
+    settings: "Settings", hideSettings: "Hide settings", photo: "ID / profile photo",
+    remove: "Remove photo", pwHead: "Change password (leave empty to keep)",
+    curPw: "Current password", newPw: "New password", save: "Save changes", logout: "Logout",
     myRequests: "My requests", admin: "Admin", saved: "Saved.",
     loggedOut: "You have logged out.", regOk: "Account created. Now log in.",
     working: "Please wait...", net: "Cannot reach the server. Check your internet and try again."
@@ -165,8 +170,8 @@ const T = {
     sheger: "Lakkoofsa Sheger ID", idName: "Maqaa kaardii ID irratti (filannoo)", role: "Ani",
     farmer: "Qotee bulaa", supplier: "Dhiheessaa", regNow: "Akkaawuntii uumi",
     pwRule: "Qubee 8 yookaan ol, lakkoofsa fi mallattoo tokko of keessaa qabu.",
-    settings: "Sirreeffama", photo: "Suuraa ID / profaayilii", remove: "Suuraa balleessi",
-    pwHead: "Jecha iccitii jijjiiruu (duwwaa yoo hiikte, kan jiru ni eegama)",
+    settings: "Sirreeffama", hideSettings: "Dhoksi", photo: "Suuraa ID / profaayilii",
+    remove: "Suuraa balleessi", pwHead: "Jecha iccitii jijjiiruu (duwwaa yoo hiikte, kan jiru ni eegama)",
     curPw: "Jecha iccitii ammaa", newPw: "Jecha iccitii haaraa",
     save: "Jijjiiramoota olkaasi", logout: "Ba'i", myRequests: "Gaaffiiwwan koo",
     admin: "Bulchaa", saved: "Kuufameera.", loggedOut: "Ba'uudhaan galmaa'eera.",
@@ -207,6 +212,12 @@ function applyLang() {
     const el = document.getElementById(id);
     if (el) el.textContent = T_(key);
   }
+  syncSettingsBtn();
+}
+
+function syncSettingsBtn() {
+  const open = !document.getElementById("settingsCard").classList.contains("hidden");
+  document.getElementById("toggleSettings").textContent = open ? T_("hideSettings") : T_("settings");
 }
 
 function show(id, on) { document.getElementById(id).classList.toggle("hidden", !on); }
@@ -236,7 +247,12 @@ async function api(path, opts = {}) {
   return data;
 }
 
-function showGuest() { show("userBox", false); show("guestBox", true); }
+function showGuest() {
+  show("userBox", false);
+  show("guestBox", true);
+  show("settingsCard", false);
+  syncSettingsBtn();
+}
 
 function renderPhoto() {
   const src = newPhoto !== undefined ? newPhoto : currentPhoto;
@@ -309,6 +325,12 @@ document.getElementById("langBtn").addEventListener("click", () => {
   LANG = LANG === "en" ? "om" : "en";
   try { sessionStorage.setItem("lang", LANG); } catch (e) {}
   applyLang();
+});
+
+document.getElementById("toggleSettings").addEventListener("click", () => {
+  const open = document.getElementById("settingsCard").classList.contains("hidden");
+  show("settingsCard", open);
+  syncSettingsBtn();
 });
 
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
@@ -419,4 +441,4 @@ async function init() {
 init();
 </script>
 </body>
-        </html>
+  </html>
