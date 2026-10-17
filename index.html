@@ -8,28 +8,25 @@
 </head>
 <body>
 
-    <nav class="navbar">
-        <div class="nav-brand">🌱 Qonna</div>
-        <div style="display:flex; gap:6px; align-items:center;">
-            <a href="marketplace.html" class="btn-dash" style="font-size:12px; padding:4px 10px;">Profile</a>
-            <a href="admin-prices.html" class="btn-dash" style="font-size:12px; padding:4px 10px;" data-en="Admin" data-om="Bulchaa">Admin</a>
-            <button id="langBtn" class="btn-dash" style="font-size:12px; padding:4px 10px;">🌐</button>
+    <nav class="navbar" style="display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:6px;">
+        <div style="justify-self:start;">
+            <button id="langBtn" class="btn-dash" style="font-size:16px; padding:4px 10px;">🌐</button>
+        </div>
+        <div style="justify-self:center;">
+            <a href="offers.html" data-en="Requests" data-om="Gaaffiiwwan"
+               style="background:#FBC02D; color:#333; font-size:12px; font-weight:bold; padding:5px 12px; border-radius:20px; text-decoration:none;">Requests</a>
+        </div>
+        <div style="justify-self:end; display:flex; gap:8px; align-items:center;">
+            <a href="marketplace.html" title="Profile" style="font-size:20px; text-decoration:none;">👤</a>
+            <a href="admin-prices.html" class="btn-dash" data-en="Admin" data-om="Bulchaa"
+               style="font-size:12px; padding:4px 10px;">Admin</a>
         </div>
     </nav>
 
     <header class="hero-section">
         <h1 data-en="Smart Farming" data-om="Qonna Dijitaalawaa">Smart Farming</h1>
         <p data-en="Sheger City's digital platform for local farmers." data-om="Platformii dijitaalaa qotee bulaa Shaggar.">Sheger City's digital platform for local farmers.</p>
-        <a href="register.html" class="btn-primary" data-en="Get Started" data-om="Jalqabi">Get Started</a>
     </header>
-
-    <div class="dashboard-grid" style="grid-template-columns: 1fr; justify-items: start;">
-        <a href="offers.html" class="menu-card">
-            <div class="icon-box">📩</div>
-            <h3 data-en="Requests" data-om="Gaaffiiwwan">Requests</h3>
-            <p data-en="Offers & requests" data-om="Gaaffii fi ergama">Offers & requests</p>
-        </a>
-    </div>
 
     <div class="dashboard-grid">
         <a href="weather.html" class="menu-card">
