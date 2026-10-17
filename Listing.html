@@ -7,11 +7,11 @@
     <link rel="stylesheet" href="style.css">
     <style>
         .detail { background: white; border-radius: 14px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,.06); text-align: left; }
-        .detail h2 { margin: 6px 0 4px; color: #2E7D32; }
+        .detail h2 { margin: 8px 0 4px; color: #2E7D32; }
         .price { font-size: 26px; font-weight: bold; color: #2E7D32; margin: 10px 0; }
-        .row { padding: 8px 0; border-bottom: 1px solid #eee; color: #333; }
-        .row b { color: #555; }
-        .actions { display: flex; gap: 10px; margin-top: 16px; }
+        .row { padding: 10px 0; border-bottom: 1px solid #eee; color: #333; font-size: 15px; }
+        .row b { color: #555; display: block; font-size: 13px; font-weight: normal; }
+        .actions { display: flex; gap: 10px; margin-top: 18px; }
         .actions a { flex: 1; text-align: center; padding: 14px; border-radius: 10px; color: white; text-decoration: none; font-weight: bold; }
         .call { background: #2E7D32; }
         .sms { background: #1565C0; }
@@ -24,50 +24,108 @@
 <body>
     <div class="navbar">
         <div class="nav-brand">🌱 Qonna</div>
-        <a href="listings.html" class="btn-dash">Back / Deebi'i</a>
+        <div>
+            <button id="langBtn" class="btn-dash">Afaan Oromoo</button>
+            <a href="listings.html" id="backLink" class="btn-dash">Back</a>
+        </div>
     </div>
 
     <div class="container">
-        <div id="box" class="msg">Loading... / Fe'aa jira...</div>
+        <div id="box" class="msg">Loading...</div>
     </div>
 
     <script>
         const API = "https://qonna-dijitaalaa.onrender.com";
         const id = new URLSearchParams(location.search).get("id");
         const box = document.getElementById("box");
+        let lang = sessionStorage.getItem("lang") || "en";
+        let current = null;
+
+        const T = {
+            en: { back: "Back", call: "📞 Call", sms: "💬 SMS", seller: "Seller", area: "Sub-city", qty: "Quantity",
+                  cat: "Category", details: "Details", posted: "Posted on", sell: "Selling", buy: "Buying",
+                  loading: "Loading...", notFound: "Listing not found.", error: "Could not load. Please try again.",
+                  noContact: "No phone number given.", switchTo: "Afaan Oromoo" },
+            om: { back: "Duubatti", call: "📞 Bilbili", sms: "💬 SMS", seller: "Gurguruu", area: "Naannoo", qty: "Baay'ina",
+                  cat: "Gosa", details: "Ibsa", posted: "Guyyaa galmeessame", sell: "Gurguruu", buy: "Bitaa",
+                  loading: "Fe'aa jira...", notFound: "Oduun kun hin argamne.", error: "Fe'uun hin danda'amne. Irra deebi'ii yaali.",
+                  noContact: "Lakkoofsi bilbilaa hin kennamne.", switchTo: "English" }
+        };
+        const CATS = {
+            seeds: { en: "Seeds", om: "Sanyii" },
+            materials: { en: "Farm Materials", om: "Meeshaa qonnaa" },
+            fertilizer: { en: "Fertilizer", om: "Ajaa'ib" },
+            produce: { en: "Produce", om: "Oomisha" }
+        };
+
         const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g,
             c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-        function render(l) {
-            const phone = String(l.contact || "").replace(/\s+/g, "");
-            const isSell = l.action === "sell";
+        function show(text) {
+            box.className = "msg";
+            box.textContent = text;
+        }
+
+        function render() {
+            if (!current) return;
+            const l = current;
+            const o = l.owner || {};
+            const tr = T[lang];
+            const phone = String(o.contact || "").replace(/\s+/g, "");
+            const isPhone = /^[+\d-]+$/.test(phone) && phone.length > 0;
+            const cat = CATS[l.category] ? CATS[l.category][lang] : l.category;
+            const qty = l.quantity ? `${esc(l.quantity)} ${esc(l.unit || "")}` : "-";
+            const contactHtml = isPhone
+                ? `<div class="actions">
+                       <a class="call" href="tel:${encodeURIComponent(phone)}">${tr.call}</a>
+                       <a class="sms" href="sms:${encodeURIComponent(phone)}">${tr.sms}</a>
+                   </div>`
+                : `<div class="row"><b>${tr.seller}</b>${esc(o.contact || tr.noContact)}</div>`;
+
+            document.title = l.name + " - Qonna";
+            document.getElementById("backLink").textContent = tr.back;
+            document.getElementById("langBtn").textContent = tr.switchTo;
+
             box.className = "detail";
             box.innerHTML = `
-                <span class="tag ${isSell ? 'sell' : 'buy'}">${isSell ? 'Selling / Gurguruu' : 'Buying / Bituu'}</span>
+                <span class="tag ${l.action === "sell" ? "sell" : "buy"}">${l.action === "sell" ? tr.sell : tr.buy}</span>
                 <h2>${esc(l.name)}</h2>
-                <div class="price">${Number(l.price).toLocaleString()} ETB</div>
-                <div class="row"><b>Quantity / Baay'ina:</b> ${esc(l.quantity || "-")} ${esc(l.unit || "")}</div>
-                <div class="row"><b>Category / Gosa:</b> ${esc(l.category)}</div>
-                <div class="row"><b>Seller / Gurguruu:</b> ${esc(l.seller)}</div>
-                <div class="row"><b>Sub-city / Naannoo:</b> ${esc(l.sub_city)}</div>
-                <div class="row"><b>Details / Ibsa:</b> ${esc(l.description || "-")}</div>
-                <div class="actions">
-                    <a class="call" href="tel:${encodeURIComponent(phone)}">📞 Call / Bilbili</a>
-                    <a class="sms" href="sms:${encodeURIComponent(phone)}">💬 SMS</a>
-                </div>`;
+                <div class="price">${esc(l.price)} ETB</div>
+                <div class="row"><b>${tr.qty}</b>${qty}</div>
+                <div class="row"><b>${tr.cat}</b>${esc(cat)}</div>
+                <div class="row"><b>${tr.details}</b>${esc(l.description || "-")}</div>
+                <div class="row"><b>${tr.seller}</b>${esc(o.fullName || "-")}</div>
+                <div class="row"><b>${tr.area}</b>${esc(o.subCity || "-")}</div>
+                <div class="row"><b>${tr.posted}</b>${esc(l.createdAt || "-")}</div>
+                ${contactHtml}`;
         }
 
         async function load() {
-            if (!id) { box.textContent = "Listing not found. / Hin argamne."; return; }
+            if (!id) { show(T[lang].notFound); return; }
+            show(T[lang].loading);
             try {
-                const res = await fetch(API + "/listing/" + encodeURIComponent(id));
+                let user = null;
+                try { user = JSON.parse(localStorage.getItem("activeUser")); } catch (e) {}
+                const headers = user && user.token ? { Authorization: "Bearer " + user.token } : {};
+                const res = await fetch(API + "/listings", { headers });
                 const data = await res.json();
-                if (!res.ok) throw new Error(data.message || "Not found");
-                render(data.listing);
+                if (!res.ok) throw new Error("bad");
+                const list = Array.isArray(data) ? data : (data.listings || data.data || []);
+                current = list.find(x => String(x.id) === String(id)) || null;
+                if (!current) { show(T[lang].notFound); return; }
+                render();
             } catch (e) {
-                box.textContent = "Could not load. Try again in a minute. / Irra deebi'ii yaali.";
+                show(T[lang].error);
             }
         }
+
+        document.getElementById("langBtn").addEventListener("click", () => {
+            lang = lang === "en" ? "om" : "en";
+            sessionStorage.setItem("lang", lang);
+            if (current) render();
+            else document.getElementById("backLink").textContent = T[lang].back;
+        });
+
         load();
     </script>
 </body>
