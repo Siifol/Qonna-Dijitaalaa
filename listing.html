@@ -19,6 +19,16 @@
         .tag.sell { background: #2E7D32; }
         .tag.buy { background: #EF6C00; }
         .msg { color: #666; padding: 20px; text-align: center; }
+        .offer-box { background: white; border-radius: 14px; padding: 18px; margin-top: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); text-align: left; }
+        .offer-box h3 { margin: 0 0 12px; color: #2E7D32; }
+        .offer-box label { display: block; margin: 10px 0 4px; color: #555; font-size: 14px; }
+        .offer-box select, .offer-box input, .offer-box textarea {
+            width: 100%; padding: 12px; border: 1px solid #DCE2DC; border-radius: 8px; font-size: 16px; box-sizing: border-box; font-family: inherit;
+        }
+        .offer-box button { width: 100%; margin-top: 14px; padding: 14px; border: none; border-radius: 10px; background: #EF6C00; color: white; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .offer-msg { margin-top: 10px; padding: 10px; border-radius: 8px; display: none; }
+        .offer-msg.ok { background: #E8F5E9; color: #2E7D32; display: block; }
+        .offer-msg.bad { background: #FDF2F2; color: #D32F2F; display: block; }
     </style>
 </head>
 <body>
@@ -32,12 +42,14 @@
 
     <div class="container">
         <div id="box" class="msg">Loading...</div>
+        <div id="offerArea"></div>
     </div>
 
     <script>
         const API = "https://qonna-dijitaalaa.onrender.com";
         const id = new URLSearchParams(location.search).get("id");
         const box = document.getElementById("box");
+        const offerArea = document.getElementById("offerArea");
         let lang = sessionStorage.getItem("lang") || "en";
         let current = null;
 
@@ -45,11 +57,19 @@
             en: { back: "Back", call: "📞 Call", sms: "💬 SMS", seller: "Seller", area: "Sub-city", qty: "Quantity",
                   cat: "Category", details: "Details", posted: "Posted on", sell: "Selling", buy: "Buying",
                   loading: "Loading...", notFound: "Listing not found.", error: "Could not load. Please try again.",
-                  noContact: "No phone number given.", switchTo: "Afaan Oromoo" },
+                  noContact: "No phone number given.", switchTo: "Afaan Oromoo",
+                  offerTitle: "Make an offer or ask for a discount", kind: "Request type", kindOffer: "Make an offer",
+                  kindDiscount: "Ask for a discount", amount: "Your price (ETB)", message: "Message (optional)",
+                  send: "Send request", login: "Log in to send a request.", loginLink: "Log in",
+                  sent: "Request sent.", failed: "Could not send. Please try again.", own: "This is your own listing." },
             om: { back: "Duubatti", call: "📞 Bilbili", sms: "💬 SMS", seller: "Gurguruu", area: "Naannoo", qty: "Baay'ina",
                   cat: "Gosa", details: "Ibsa", posted: "Guyyaa galmeessame", sell: "Gurguruu", buy: "Bitaa",
                   loading: "Fe'aa jira...", notFound: "Oduun kun hin argamne.", error: "Fe'uun hin danda'amne. Irra deebi'ii yaali.",
-                  noContact: "Lakkoofsi bilbilaa hin kennamne.", switchTo: "English" }
+                  noContact: "Lakkoofsi bilbilaa hin kennamne.", switchTo: "English",
+                  offerTitle: "Gatii kennii ykn rifeensa gaafadhu", kind: "Gosa gaaffii", kindOffer: "Gatii kennii",
+                  kindDiscount: "Rifeensa gaafadhu", amount: "Gatii keessan (ETB)", message: "Ergaa (filannoo)",
+                  send: "Gaaffii ergi", login: "Gaaffii erguuf seenaa.", loginLink: "Seeni",
+                  sent: "Gaaffiin ergameera.", failed: "Ergamuu hin danda'amne. Irra deebi'ii yaali.", own: "Oduun kee kana." }
         };
         const CATS = {
             seeds: { en: "Seeds", om: "Sanyii" },
@@ -61,6 +81,10 @@
         const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g,
             c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
+        function getUser() {
+            try { return JSON.parse(localStorage.getItem("activeUser")); } catch (e) { return null; }
+        }
+
         function show(text) {
             box.className = "msg";
             box.textContent = text;
@@ -71,10 +95,13 @@
             const l = current;
             const o = l.owner || {};
             const tr = T[lang];
+            const user = getUser();
             const phone = String(o.contact || "").replace(/\s+/g, "");
             const isPhone = /^[+\d-]+$/.test(phone) && phone.length > 0;
             const cat = CATS[l.category] ? CATS[l.category][lang] : l.category;
             const qty = l.quantity ? `${esc(l.quantity)} ${esc(l.unit || "")}` : "-";
+            const isMine = user && String(o.id) === String(user.uid || user.id);
+
             const contactHtml = isPhone
                 ? `<div class="actions">
                        <a class="call" href="tel:${encodeURIComponent(phone)}">${tr.call}</a>
@@ -98,14 +125,73 @@
                 <div class="row"><b>${tr.area}</b>${esc(o.subCity || "-")}</div>
                 <div class="row"><b>${tr.posted}</b>${esc(l.createdAt || "-")}</div>
                 ${contactHtml}`;
+
+            renderOffer(user, isMine);
+        }
+
+        function renderOffer(user, isMine) {
+            const tr = T[lang];
+            if (isMine) {
+                offerArea.innerHTML = `<div class="offer-box"><p>${tr.own}</p></div>`;
+                return;
+            }
+            if (!user || !user.token) {
+                offerArea.innerHTML = `<div class="offer-box"><p>${tr.login} <a href="login.html" style="color:#2E7D32;font-weight:bold;">${tr.loginLink}</a></p></div>`;
+                return;
+            }
+            offerArea.innerHTML = `
+                <div class="offer-box">
+                    <h3>${tr.offerTitle}</h3>
+                    <label for="kind">${tr.kind}</label>
+                    <select id="kind">
+                        <option value="offer">${tr.kindOffer}</option>
+                        <option value="discount">${tr.kindDiscount}</option>
+                    </select>
+                    <label for="amount">${tr.amount}</label>
+                    <input id="amount" type="number" min="1" step="any">
+                    <label for="message">${tr.message}</label>
+                    <textarea id="message" rows="3" maxlength="300"></textarea>
+                    <button id="sendOffer" type="button">${tr.send}</button>
+                    <div id="offerMsg" class="offer-msg"></div>
+                </div>`;
+            document.getElementById("sendOffer").addEventListener("click", sendOffer);
+        }
+
+        async function sendOffer() {
+            const tr = T[lang];
+            const user = getUser();
+            const msgBox = document.getElementById("offerMsg");
+            const btn = document.getElementById("sendOffer");
+            btn.disabled = true;
+            try {
+                const res = await fetch(API + "/listings/" + encodeURIComponent(id) + "/offers", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + user.token },
+                    body: JSON.stringify({
+                        kind: document.getElementById("kind").value,
+                        amount: document.getElementById("amount").value,
+                        message: document.getElementById("message").value
+                    })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data.message || tr.failed);
+                msgBox.className = "offer-msg ok";
+                msgBox.textContent = tr.sent;
+                document.getElementById("amount").value = "";
+                document.getElementById("message").value = "";
+            } catch (e) {
+                msgBox.className = "offer-msg bad";
+                msgBox.textContent = e.message || tr.failed;
+            } finally {
+                btn.disabled = false;
+            }
         }
 
         async function load() {
             if (!id) { show(T[lang].notFound); return; }
             show(T[lang].loading);
             try {
-                let user = null;
-                try { user = JSON.parse(localStorage.getItem("activeUser")); } catch (e) {}
+                let user = getUser();
                 const headers = user && user.token ? { Authorization: "Bearer " + user.token } : {};
                 const res = await fetch(API + "/listings", { headers });
                 const data = await res.json();
