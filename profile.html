@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile</title>
+<style>
+  :root { --green:#2E7D32; --yellow:#FBC02D; --red:#C62828; --bg:#F4F7F4; --card:#FFFFFF; --text:#222222; --muted:#666666; --line:#DFE6DF; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg:#121712; --card:#1C241C; --text:#EEEEEE; --muted:#AAB4AA; --line:#2E3A2E; }
+  }
+  :root[data-theme="dark"] { --bg:#121712; --card:#1C241C; --text:#EEEEEE; --muted:#AAB4AA; --line:#2E3A2E; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, sans-serif; background:var(--bg); color:var(--text); }
+  header { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 16px; background:var(--green); color:#fff; }
+  header a { color:#fff; text-decoration:none; font-size:15px; }
+  #langBtn { background:none; border:0; font-size:20px; cursor:pointer; color:#fff; }
+  main { max-width:480px; margin:0 auto; padding:16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px; margin-bottom:16px; }
+  h2 { margin:0 0 12px; font-size:20px; }
+  h3 { margin:16px 0 4px; font-size:15px; color:var(--green); }
+  label { display:block; font-size:13px; color:var(--muted); margin:10px 0 4px; }
+  input, select { width:100%; padding:11px; border:1px solid var(--line); border-radius:10px; font-size:16px; background:var(--card); color:var(--text); }
+  .hint { font-size:12px; color:var(--muted); margin:4px 0 0; }
+  .btn { width:100%; margin-top:14px; padding:12px; border:0; border-radius:10px; background:var(--green); color:#fff; font-size:16px; font-weight:bold; cursor:pointer; }
+  .btn.danger { background:var(--red); }
+  .btn.small { width:auto; margin-top:8px; padding:6px 12px; font-size:13px; background:transparent; color:var(--red); border:1px solid var(--red); }
+  .tabs { display:flex; gap:8px; margin-bottom:6px; }
+  .tabs button { flex:1; padding:10px; border:1px solid var(--line); background:var(--card); color:var(--text); border-radius:10px; font-weight:bold; cursor:pointer; }
+  .tabs button.on { background:var(--green); color:#fff; border-color:var(--green); }
+  .hidden { display:none !important; }
+  .msg { margin-top:12px; padding:10px; border-radius:10px; font-size:14px; }
+  .msg.ok { background:#E8F5E9; color:#1B5E20; }
+  .msg.bad { background:#FFEBEE; color:#B71C1C; }
+  .who { display:flex; gap:14px; align-items:center; }
+  .avatar { width:68px; height:68px; flex-shrink:0; border-radius:50%; background:var(--yellow); display:flex; align-items:center; justify-content:center; font-size:32px; overflow:hidden; }
+  .avatar img { width:100%; height:100%; object-fit:cover; }
+  .links { margin-top:6px; display:flex; gap:14px; flex-wrap:wrap; }
+  .links a { color:var(--green); font-weight:bold; text-decoration:none; font-size:14px; }
+  #photoPrev img { width:96px; height:96px; object-fit:cover; border-radius:12px; margin-top:8px; display:block; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" id="backLink">← Home</a>
+  <strong id="pageTitle">Profile</strong>
+  <button id="langBtn" title="Language">🌐</button>
+</header>
+
+<main>
+
+  <!-- LOGGED OUT: register first, then login -->
+  <section id="guestBox" class="hidden">
+    <div class="card">
+      <div class="tabs">
+        <button id="tabLogin" class="on">Login</button>
+        <button id="tabReg">Register</button>
+      </div>
+
+      <form id="loginForm">
+        <label id="lblLPhone">Phone number</label>
+        <input id="loginContact" inputmode="tel" autocomplete="username" required>
+        <label id="lblLPass">Password</label>
+        <input id="loginPass" type="password" autocomplete="current-password" required>
+        <button class="btn" id="loginBtn" type="submit">Login</button>
+      </form>
+
+      <form id="regForm" class="hidden">
+        <label id="lblFull">Full name</label>
+        <input id="regFull" required>
+        <label id="lblUser">Username</label>
+        <input id="regUser" required>
+        <label id="lblRPhone">Phone number</label>
+        <input id="regContact" inputmode="tel" required>
+        <label id="lblSub">Sub-city</label>
+        <input id="regSub" required>
+        <label id="lblSheger">Sheger ID</label>
+        <input id="regSheger" required>
+        <label id="lblIdName">Name on ID card (optional)</label>
+        <input id="regIdName">
+        <label id="lblRole">I am a</label>
+        <select id="regRole">
+          <option value="farmer" id="optFarmer">Farmer</option>
+          <option value="supplier" id="optSupplier">Supplier</option>
+        </select>
+        <label id="lblRPass">Password</label>
+        <input id="regPass" type="password" autocomplete="new-password" required>
+        <p class="hint" id="pwHint">At least 8 characters, with a letter, a number and a symbol.</p>
+        <button class="btn" id="regBtn" type="submit">Create account</button>
+      </form>
+
+      <div id="guestMsg" class="msg hidden"></div>
+    </div>
+  </section>
+
+  <!-- LOGGED IN: settings and logout -->
+  <section id="userBox" class="hidden">
+    <div class="card who">
+      <div class="avatar" id="avatar">👤</div>
+      <div style="min-width:0">
+        <div id="uName" style="font-weight:bold; font-size:18px; overflow-wrap:anywhere"></div>
+        <div id="uMeta" style="color:var(--muted); font-size:14px"></div>
+        <div class="links">
+          <a href="offers.html" id="reqLink">My requests</a>
+          <a href="admin-prices.html" id="adminLink" class="hidden">Admin</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 id="setTitle">Settings</h2>
+      <form id="setForm">
+        <label id="lblSetFull">Full name</label>
+        <input id="setFull" required>
+        <label id="lblSetUser">Username</label>
+        <input id="setUser" required>
+        <label id="lblSetPhoto">ID / profile photo</label>
+        <input id="setPhoto" type="file" accept="image/*">
+        <div id="photoPrev" class="hidden">
+          <img id="photoImg" alt="">
+          <button type="button" class="btn small" id="removePhoto">Remove photo</button>
+        </div>
+
+        <h3 id="pwHead">Change password (leave empty to keep)</h3>
+        <label id="lblCur">Current password</label>
+        <input id="setCur" type="password" autocomplete="current-password">
+        <label id="lblNew">New password</label>
+        <input id="setNew" type="password" autocomplete="new-password">
+        <p class="hint" id="pwHint2">At least 8 characters, with a letter, a number and a symbol.</p>
+
+        <button class="btn" id="saveBtn" type="submit">Save changes</button>
+      </form>
+      <div id="setMsg" class="msg hidden"></div>
+    </div>
+
+    <div class="card">
+      <button class="btn danger" id="logoutBtn">Logout</button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+const API = "https://qonna-dijitaalaa.onrender.com";
+
+const T = {
+  en: {
+    title: "Profile", home: "← Home", login: "Login", register: "Register",
+    phone: "Phone number", password: "Password", fullName: "Full name", username: "Username",
+    subCity: "Sub-city", sheger: "Sheger ID", idName: "Name on ID card (optional)", role: "I am a",
+    farmer: "Farmer", supplier: "Supplier", regNow: "Create account",
+    pwRule: "At least 8 characters, with a letter, a number and a symbol.",
+    settings: "Settings", photo: "ID / profile photo", remove: "Remove photo",
+    pwHead: "Change password (leave empty to keep)", curPw: "Current password",
+    newPw: "New password", save: "Save changes", logout: "Logout",
+    myRequests: "My requests", admin: "Admin", saved: "Saved.",
+    loggedOut: "You have logged out.", regOk: "Account created. Now log in.",
+    working: "Please wait...", net: "Cannot reach the server. Check your internet and try again."
+  },
+  om: {
+    title: "Profaayilii", home: "← Mana", login: "Seeni", register: "Galmaa'i",
+    phone: "Lakkoofsa bilbilaa", password: "Jecha iccitii", fullName: "Maqaa guutuu",
+    username: "Maqaa fayyadamaa", subCity: "Mana-hojii xiqqaa (Sub-city)",
+    sheger: "Lakkoofsa Sheger ID", idName: "Maqaa kaardii ID irratti (filannoo)", role: "Ani",
+    farmer: "Qotee bulaa", supplier: "Dhiheessaa", regNow: "Akkaawuntii uumi",
+    pwRule: "Qubee 8 yookaan ol, lakkoofsa fi mallattoo tokko of keessaa qabu.",
+    settings: "Sirreeffama", photo: "Suuraa ID / profaayilii", remove: "Suuraa balleessi",
+    pwHead: "Jecha iccitii jijjiiruu (duwwaa yoo hiikte, kan jiru ni eegama)",
+    curPw: "Jecha iccitii ammaa", newPw: "Jecha iccitii haaraa",
+    save: "Jijjiiramoota olkaasi", logout: "Ba'i", myRequests: "Gaaffiiwwan koo",
+    admin: "Bulchaa", saved: "Kuufameera.", loggedOut: "Ba'uudhaan galmaa'eera.",
+    regOk: "Akkaawuntiin uumameera. Amma seenaa.", working: "Maaloo eeggadhu...",
+    net: "Serveriin hin argamne. Interneetii ilaali deebi'ii yaali."
+  }
+};
+
+let LANG = "en";
+try { LANG = sessionStorage.getItem("lang") === "om" ? "om" : "en"; } catch (e) {}
+
+const LABELS = {
+  pageTitle: "title", backLink: "home", tabLogin: "login", tabReg: "register",
+  lblLPhone: "phone", lblLPass: "password", loginBtn: "login",
+  lblFull: "fullName", lblUser: "username", lblRPhone: "phone", lblSub: "subCity",
+  lblSheger: "sheger", lblIdName: "idName", lblRole: "role", optFarmer: "farmer",
+  optSupplier: "supplier", lblRPass: "password", pwHint: "pwRule", regBtn: "regNow",
+  setTitle: "settings", lblSetFull: "fullName", lblSetUser: "username", lblSetPhoto: "photo",
+  removePhoto: "remove", pwHead: "pwHead", lblCur: "curPw", lblNew: "newPw",
+  pwHint2: "pwRule", saveBtn: "save", logoutBtn: "logout", reqLink: "myRequests",
+  adminLink: "admin"
+};
+
+const T_ = (k) => (T[LANG][k] || T.en[k] || k);
+const v = (id) => document.getElementById(id).value.trim();
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } },
+  set(k, val) { try { localStorage.setItem(k, JSON.stringify(val)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+};
+
+let currentPhoto = "";
+let newPhoto = undefined; // undefined = unchanged, "" = remove, data = new photo
+
+function applyLang() {
+  document.documentElement.lang = LANG;
+  for (const [id, key] of Object.entries(LABELS)) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = T_(key);
+  }
+}
+
+function show(id, on) { document.getElementById(id).classList.toggle("hidden", !on); }
+
+function note(id, text, ok) {
+  const el = document.getElementById(id);
+  el.textContent = text || "";
+  el.className = text ? "msg " + (ok ? "ok" : "bad") : "msg hidden";
+}
+
+async function api(path, opts = {}) {
+  const user = store.get("activeUser");
+  const headers = { "Content-Type": "application/json" };
+  if (user && user.token) headers["Authorization"] = "Bearer " + user.token;
+  let res;
+  try {
+    res = await fetch(API + path, { ...opts, headers: { ...headers, ...(opts.headers || {}) } });
+  } catch (e) {
+    throw new Error(T_("net"));
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const e = new Error(data.message || "Error");
+    e.status = res.status;
+    throw e;
+  }
+  return data;
+}
+
+function showGuest() { show("userBox", false); show("guestBox", true); }
+
+function renderPhoto() {
+  const src = newPhoto !== undefined ? newPhoto : currentPhoto;
+  document.getElementById("photoImg").src = src || "";
+  show("photoPrev", !!src);
+}
+
+function showUser(p) {
+  show("guestBox", false);
+  show("userBox", true);
+  document.getElementById("uName").textContent = p.fullName;
+  document.getElementById("uMeta").textContent =
+    "@" + p.username + " · " + (p.role === "supplier" ? T_("supplier") : T_("farmer"));
+  const av = document.getElementById("avatar");
+  av.innerHTML = "";
+  if (p.idPhoto) {
+    const img = document.createElement("img");
+    img.src = p.idPhoto;
+    img.alt = "";
+    av.appendChild(img);
+  } else {
+    av.textContent = "👤";
+  }
+  document.getElementById("setFull").value = p.fullName;
+  document.getElementById("setUser").value = p.username;
+  show("adminLink", p.role === "admin");
+  currentPhoto = p.idPhoto || "";
+  newPhoto = undefined;
+  renderPhoto();
+  store.set("activeUser", { ...(store.get("activeUser") || {}),
+    id: p.id, uid: p.id, role: p.role, fullName: p.fullName, username: p.username });
+}
+
+function resizeImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        const max = 400;
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement("canvas");
+        c.width = Math.round(img.width * scale);
+        c.height = Math.round(img.height * scale);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        resolve(c.toDataURL("image/jpeg", 0.8));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function setTab(which) {
+  const isLogin = which === "login";
+  document.getElementById("tabLogin").classList.toggle("on", isLogin);
+  document.getElementById("tabReg").classList.toggle("on", !isLogin);
+  show("loginForm", isLogin);
+  show("regForm", !isLogin);
+  note("guestMsg", "", true);
+}
+
+// ---- events ----
+document.getElementById("tabLogin").addEventListener("click", () => setTab("login"));
+document.getElementById("tabReg").addEventListener("click", () => setTab("register"));
+
+document.getElementById("langBtn").addEventListener("click", () => {
+  LANG = LANG === "en" ? "om" : "en";
+  try { sessionStorage.setItem("lang", LANG); } catch (e) {}
+  applyLang();
+});
+
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  note("guestMsg", T_("working"), true);
+  try {
+    const d = await api("/login", {
+      method: "POST",
+      body: JSON.stringify({
+        contact: v("loginContact"),
+        password: document.getElementById("loginPass").value
+      })
+    });
+    store.set("activeUser", { token: d.token, id: d.id, uid: d.id, role: d.role,
+      fullName: d.fullName, username: d.username });
+    document.getElementById("loginPass").value = "";
+    note("guestMsg", "", true);
+    showUser(await api("/profile"));
+  } catch (err) {
+    note("guestMsg", err.message, false);
+  }
+});
+
+document.getElementById("regForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  note("guestMsg", T_("working"), true);
+  try {
+    await api("/register", {
+      method: "POST",
+      body: JSON.stringify({
+        fullName: v("regFull"), username: v("regUser"), contact: v("regContact"),
+        subCity: v("regSub"), shegerId: v("regSheger"), idCardName: v("regIdName"),
+        role: document.getElementById("regRole").value,
+        password: document.getElementById("regPass").value
+      })
+    });
+    const phone = v("regContact");
+    document.getElementById("regForm").reset();
+    setTab("login");
+    document.getElementById("loginContact").value = phone;
+    note("guestMsg", T_("regOk"), true);
+  } catch (err) {
+    note("guestMsg", err.message, false);
+  }
+});
+
+document.getElementById("setPhoto").addEventListener("change", async (ev) => {
+  const f = ev.target.files[0];
+  if (!f) return;
+  try {
+    newPhoto = await resizeImage(f);
+    renderPhoto();
+  } catch (err) {
+    note("setMsg", "Photo error / Dogoggora suuraa", false);
+  }
+});
+
+document.getElementById("removePhoto").addEventListener("click", () => {
+  newPhoto = "";
+  document.getElementById("setPhoto").value = "";
+  renderPhoto();
+});
+
+document.getElementById("setForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const body = {
+    fullName: v("setFull"),
+    username: v("setUser"),
+    currentPassword: document.getElementById("setCur").value,
+    newPassword: document.getElementById("setNew").value
+  };
+  if (newPhoto !== undefined) body.idPhoto = newPhoto;
+  note("setMsg", T_("working"), true);
+  try {
+    const p = await api("/profile", { method: "PUT", body: JSON.stringify(body) });
+    document.getElementById("setCur").value = "";
+    document.getElementById("setNew").value = "";
+    document.getElementById("setPhoto").value = "";
+    showUser(p);
+    note("setMsg", T_("saved"), true);
+  } catch (err) {
+    note("setMsg", err.message, false);
+  }
+});
+
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  store.del("activeUser");
+  currentPhoto = "";
+  newPhoto = undefined;
+  showGuest();
+  setTab("login");
+  note("guestMsg", T_("loggedOut"), true);
+});
+
+// ---- start ----
+async function init() {
+  applyLang();
+  const user = store.get("activeUser");
+  if (!user || !user.token) { showGuest(); return; }
+  try {
+    showUser(await api("/profile"));
+  } catch (err) {
+    if (err.status === 401) store.del("activeUser");
+    showGuest();
+    if (err.status !== 401) note("guestMsg", err.message, false);
+  }
+}
+init();
+</script>
+</body>
+        </html>
