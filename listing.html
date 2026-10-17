@@ -23,6 +23,7 @@
         .offer-box input, .offer-box textarea {
             width: 100%; padding: 12px; border: 1px solid #DCE2DC; border-radius: 8px; font-size: 16px; box-sizing: border-box; font-family: inherit;
         }
+        .agree { background: #E8F5E9; color: #1B5E20; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 10px; }
         .offer-box button { width: 100%; margin-top: 14px; padding: 14px; border: none; border-radius: 10px; background: #2E7D32; color: white; font-size: 16px; font-weight: bold; cursor: pointer; }
         .offer-msg { margin-top: 10px; padding: 10px; border-radius: 8px; display: none; }
         .offer-msg.ok { background: #E8F5E9; color: #2E7D32; display: block; }
@@ -69,6 +70,7 @@
                   posted: "Posted on", sell: "Selling", buy: "Buying", per: "per",
                   loading: "Loading...", notFound: "Listing not found.", error: "Could not load. Please try again.",
                   noContact: "No contact given.", switchTo: "Afaan Oromoo",
+                  acceptPrice: (p, u) => `You accept the listed price: ${p} ETB per ${u}. Send your request.`,
                   amountLabel: u => `Your price per ${u} (ETB)`, message: "Message (optional)", send: "Send request",
                   login: "Log in to send a request.", loginLink: "Log in",
                   sent: "Request sent.", failed: "Could not send. Please try again.", own: "This is your own listing." },
@@ -78,6 +80,7 @@
                   posted: "Guyyaa galmeessame", sell: "Gurguruu", buy: "Bitaa", per: "tokkoof",
                   loading: "Fe'aa jira...", notFound: "Oduun kun hin argamne.", error: "Fe'uun hin danda'amne. Irra deebi'ii yaali.",
                   noContact: "Quunnamtiin hin kennamne.", switchTo: "English",
+                  acceptPrice: (p, u) => `Gatii tarreeffame fudhatta: ${p} ETB ${u} tokkoof. Gaaffii ergi.`,
                   amountLabel: u => `Gatii keessan ${u} tokkoof (ETB)`, message: "Ergaa (filannoo)", send: "Gaaffii ergi",
                   login: "Gaaffii erguuf seenaa.", loginLink: "Seeni",
                   sent: "Gaaffiin ergameera.", failed: "Ergamuu hin danda'amne. Irra deebi'ii yaali.", own: "Oduun kee kana." }
@@ -179,15 +182,20 @@
             const user = getUser();
             const area = document.getElementById("formArea");
             const unit = (current && current.unit) || "unit";
+            const price = current ? current.price : "";
             if (!user || !user.token) {
                 area.innerHTML = `<div class="offer-box"><p>${tr.login} <a href="login.html" style="color:#2E7D32;font-weight:bold;">${tr.loginLink}</a></p></div>`;
                 return;
             }
+            const priceBlock = kind === "offer"
+                ? `<div class="agree">${tr.acceptPrice(esc(price), esc(unit))}</div>`
+                : `<label for="amount">${tr.amountLabel(esc(unit))}</label>
+                   <input id="amount" type="number" min="1" step="any">`;
+
             area.innerHTML = `
                 <div class="offer-box">
                     <h3>${kind === "offer" ? tr.btnOffer : tr.btnDiscount}</h3>
-                    <label for="amount">${tr.amountLabel(esc(unit))}</label>
-                    <input id="amount" type="number" min="1" step="any">
+                    ${priceBlock}
                     <label for="message">${tr.message}</label>
                     <textarea id="message" rows="3" maxlength="300"></textarea>
                     <button id="sendOffer" type="button">${tr.send}</button>
@@ -201,6 +209,7 @@
             const user = getUser();
             const msgBox = document.getElementById("offerMsg");
             const btn = document.getElementById("sendOffer");
+            const amount = kind === "offer" ? current.price : document.getElementById("amount").value;
             btn.disabled = true;
             try {
                 const res = await fetch(API + "/listings/" + encodeURIComponent(id) + "/offers", {
@@ -208,7 +217,7 @@
                     headers: { "Content-Type": "application/json", "Authorization": "Bearer " + user.token },
                     body: JSON.stringify({
                         kind: kind,
-                        amount: document.getElementById("amount").value,
+                        amount: amount,
                         message: document.getElementById("message").value
                     })
                 });
@@ -216,8 +225,8 @@
                 if (!res.ok) throw new Error(data.message || tr.failed);
                 msgBox.className = "offer-msg ok";
                 msgBox.textContent = tr.sent;
-                document.getElementById("amount").value = "";
                 document.getElementById("message").value = "";
+                if (kind === "discount") document.getElementById("amount").value = "";
             } catch (e) {
                 msgBox.className = "offer-msg bad";
                 msgBox.textContent = e.message || tr.failed;
