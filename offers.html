@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Requests - Qonna</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .section-title { color: #1B5E20; font-size: 18px; margin: 22px 0 10px; text-align: left; }
+        .req { background: white; border-radius: 14px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.06); text-align: left; }
+        .req h3 { margin: 4px 0 6px; color: #1B5E20; font-size: 18px; }
+        .req .line { font-size: 14px; color: #444; padding: 3px 0; }
+        .req .line b { color: #666; font-weight: normal; }
+        .req .amount { font-size: 20px; font-weight: bold; color: #2E7D32; margin: 6px 0; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; color: white; }
+        .badge.offer { background: #2E7D32; }
+        .badge.discount { background: #1565C0; }
+        .badge.pending { background: #EF6C00; }
+        .badge.accepted { background: #2E7D32; }
+        .badge.declined { background: #C62828; }
+        .btns { display: flex; gap: 10px; margin-top: 12px; }
+        .btns button { flex: 1; padding: 12px; border: none; border-radius: 10px; color: white; font-weight: bold; font-size: 15px; cursor: pointer; }
+        .ok-btn { background: #2E7D32; }
+        .no-btn { background: #C62828; }
+        .actions { display: flex; gap: 10px; margin-top: 12px; }
+        .actions a { flex: 1; text-align: center; padding: 12px; border-radius: 10px; color: white; text-decoration: none; font-weight: bold; }
+        .call { background: #2E7D32; }
+        .sms { background: #1565C0; }
+        .empty { color: #666; text-align: center; padding: 16px; }
+        .msg { color: #666; padding: 20px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="nav-brand">🌱 Qonna</div>
+        <div>
+            <button id="langBtn" class="btn-dash">Afaan Oromoo</button>
+            <a href="marketplace.html" id="backLink" class="btn-dash">Back</a>
+        </div>
+    </div>
+
+    <div class="container wide">
+        <h2 id="pageTitle">Requests</h2>
+        <div id="box" class="msg">Loading...</div>
+        <div id="content"></div>
+    </div>
+
+    <script>
+        const API = "https://qonna-dijitaalaa.onrender.com";
+        const box = document.getElementById("box");
+        const content = document.getElementById("content");
+        let lang = sessionStorage.getItem("lang") || "en";
+        let received = [];
+        let sent = [];
+
+        const T = {
+            en: { title: "Requests", back: "Back", switchTo: "Afaan Oromoo",
+                  recvTitle: "Received on my listings", sentTitle: "Sent by me",
+                  kindOffer: "Offer", kindDiscount: "Discount request",
+                  pending: "Pending", accepted: "Accepted", declined: "Declined",
+                  accept: "Accept", decline: "Decline", price: "Price", buyer: "Buyer", contact: "Contact",
+                  callBuyer: "📞 Call buyer", sms: "💬 SMS", message: "Message", date: "Date",
+                  noRecv: "No requests on your listings yet.", noSent: "You have not sent any requests yet.",
+                  loading: "Loading...", loginMsg: "Log in to see your requests.", loginLink: "Log in",
+                  error: "Could not load. Please try again.", saved: "Updated." },
+            om: { title: "Gaaffiiwwan", back: "Duubatti", switchTo: "English",
+                  recvTitle: "Oduu koo irratti argame", sentTitle: "Ani ergeen",
+                  kindOffer: "Gatii kennii", kindDiscount: "Hir'ina gatiif gaaffii",
+                  pending: "Eeggachaa", accepted: "Fudhatame", declined: "Diddame",
+                  accept: "Fudhadhu", decline: "Didhu", price: "Gatii", buyer: "Bitaa", contact: "Quunnamtii",
+                  callBuyer: "📞 Bitaa bilbili", sms: "💬 SMS", message: "Ergaa", date: "Guyyaa",
+                  noRecv: "Oduu koo irratti gaaffii hin jiru.", noSent: "Gaaffii hin ergine.",
+                  loading: "Fe'aa jira...", loginMsg: "Gaaffii kee ilaaluuf seenaa.", loginLink: "Seeni",
+                  error: "Fe'uun hin danda'amne. Irra deebi'ii yaali.", saved: "Haaromfameera." }
+        };
+
+        const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g,
+            c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+        function getUser() {
+            try { return JSON.parse(localStorage.getItem("activeUser")); } catch (e) { return null; }
+        }
+
+        function setBox(text, cls) {
+            box.className = cls || "msg";
+            box.textContent = text;
+            box.style.display = text ? "block" : "none";
+        }
+
+        function statusBadge(s, tr) {
+            return `<span class="badge ${esc(s)}">${tr[s] || esc(s)}</span>`;
+        }
+
+        function kindBadge(k, tr) {
+            return `<span class="badge ${k === "offer" ? "offer" : "discount"}">${k === "offer" ? tr.kindOffer : tr.kindDiscount}</span>`;
+        }
+
+        function receivedCard(o, tr) {
+            const phone = String(o.buyer_contact || "").replace(/[\s-]/g, "");
+            const isPhone = /^\+?\d{7,15}$/.test(phone);
+            const pending = o.status === "pending";
+            const actions = pending
+                ? `<div class="btns">
+                       <button class="ok-btn" data-id="${o.id}" data-status="accepted" type="button">${tr.accept}</button>
+                       <button class="no-btn" data-id="${o.id}" data-status="declined" type="button">${tr.decline}</button>
+                   </div>`
+                : "";
+            const contact = isPhone
+                ? `<div class="actions">
+                       <a class="call" href="tel:${phone}">${tr.callBuyer}</a>
+                       <a class="sms" href="sms:${phone}">${tr.sms}</a>
+                   </div>`
+                : `<div class="line"><b>${tr.contact}:</b> ${esc(o.buyer_contact || "-")}</div>`;
+            return `
+                <div class="req">
+                    ${kindBadge(o.kind, tr)} ${statusBadge(o.status, tr)}
+                    <h3>${esc(o.listing_name)}</h3>
+                    <div class="amount">${esc(o.amount)} ETB</div>
+                    <div class="line"><b>${tr.buyer}:</b> ${esc(o.buyer_name || "-")}</div>
+                    ${o.message ? `<div class="line"><b>${tr.message}:</b> ${esc(o.message)}</div>` : ""}
+                    <div class="line"><b>${tr.date}:</b> ${esc(o.created_at || "-")}</div>
+                    ${contact}
+                    ${actions}
+                </div>`;
+        }
+
+        function sentCard(o, tr) {
+            return `
+                <div class="req">
+                    ${kindBadge(o.kind, tr)} ${statusBadge(o.status, tr)}
+                    <h3>${esc(o.listing_name)}</h3>
+                    <div class="amount">${esc(o.amount)} ETB</div>
+                    <div class="line"><b>${tr.date}:</b> ${esc(o.created_at || "-")}</div>
+                </div>`;
+        }
+
+        function render() {
+            const tr = T[lang];
+            document.title = tr.title + " - Qonna";
+            document.getElementById("pageTitle").textContent = tr.title;
+            document.getElementById("langBtn").textContent = tr.switchTo;
+            document.getElementById("backLink").textContent = tr.back;
+
+            content.innerHTML = `
+                <div class="section-title">${tr.recvTitle}</div>
+                ${received.length ? received.map(o => receivedCard(o, tr)).join("") : `<div class="empty">${tr.noRecv}</div>`}
+                <div class="section-title">${tr.sentTitle}</div>
+                ${sent.length ? sent.map(o => sentCard(o, tr)).join("") : `<div class="empty">${tr.noSent}</div>`}`;
+        }
+
+        async function respond(oid, status) {
+            const user = getUser();
+            const tr = T[lang];
+            try {
+                const res = await fetch(API + "/offers/" + encodeURIComponent(oid), {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + user.token },
+                    body: JSON.stringify({ status: status })
+                });
+                if (!res.ok) throw new Error(tr.error);
+                await loadAll();
+            } catch (e) {
+                setBox(e.message || tr.error, "msg");
+            }
+        }
+
+        async function loadAll() {
+            const tr = T[lang];
+            const user = getUser();
+            if (!user || !user.token) {
+                setBox(tr.loginMsg + " ", "msg");
+                box.innerHTML = `${tr.loginMsg} <a href="login.html" style="color:#2E7D32;font-weight:bold;">${tr.loginLink}</a>`;
+                content.innerHTML = "";
+                return;
+            }
+            setBox(tr.loading, "msg");
+            try {
+                const headers = { Authorization: "Bearer " + user.token };
+                const [r, s] = await Promise.all([
+                    fetch(API + "/offers/received", { headers }),
+                    fetch(API + "/offers/sent", { headers })
+                ]);
+                if (r.status === 401 || s.status === 401) {
+                    box.innerHTML = `${tr.loginMsg} <a href="login.html" style="color:#2E7D32;font-weight:bold;">${tr.loginLink}</a>`;
+                    content.innerHTML = "";
+                    return;
+                }
+                if (!r.ok || !s.ok) throw new Error(tr.error);
+                received = (await r.json()).offers || [];
+                sent = (await s.json()).offers || [];
+                setBox("", "msg");
+                render();
+            } catch (e) {
+                setBox(tr.error, "msg");
+            }
+        }
+
+        content.addEventListener("click", e => {
+            const btn = e.target.closest("[data-status]");
+            if (btn) respond(btn.dataset.id, btn.dataset.status);
+        });
+
+        document.getElementById("langBtn").addEventListener("click", () => {
+            lang = lang === "en" ? "om" : "en";
+            sessionStorage.setItem("lang", lang);
+            render();
+            if (!getUser() || !getUser().token) loadAll();
+        });
+
+        loadAll();
+    </script>
+</body>
+</html>
