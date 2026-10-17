@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Profile</title>
+<script src="lang-choice.js"></script>
 <style>
   :root { --green:#2E7D32; --yellow:#FBC02D; --red:#C62828; --bg:#F4F7F4; --card:#FFFFFF; --text:#222222; --muted:#666666; --line:#DFE6DF; }
   @media (prefers-color-scheme: dark) {
@@ -25,6 +26,7 @@
   .btn { width:100%; margin-top:14px; padding:12px; border:0; border-radius:10px; background:var(--green); color:#fff; font-size:16px; font-weight:bold; cursor:pointer; }
   .btn.first { margin-top:0; }
   .btn.danger { background:var(--red); }
+  .btn.outline { width:auto; margin-top:0; padding:8px 14px; font-size:14px; background:transparent; color:var(--green); border:1px solid var(--green); }
   .btn.small { width:auto; margin-top:8px; padding:6px 12px; font-size:13px; background:transparent; color:var(--red); border:1px solid var(--red); }
   .tabs { display:flex; gap:8px; margin-bottom:6px; }
   .tabs button { flex:1; padding:10px; border:1px solid var(--line); background:var(--card); color:var(--text); border-radius:10px; font-weight:bold; cursor:pointer; }
@@ -145,6 +147,11 @@
 
     <div class="card hidden" id="settingsCard">
       <h2 id="setTitle">Settings</h2>
+
+      <div style="margin-bottom:12px">
+        <button class="btn outline" id="switchLang" type="button">Change language</button>
+      </div>
+
       <form id="setForm">
         <label id="lblSetFull">Full name</label>
         <input id="setFull" required>
@@ -198,7 +205,7 @@ const T = {
     farmer: "Farmer", supplier: "Supplier", regNow: "Create account",
     phoneRule: "Ethiopian mobile: +251 9XXXXXXXX or 09XXXXXXXX.",
     pwRule: "At least 8 characters, with a letter, a number and a symbol.",
-    settings: "Settings", hideSettings: "Hide settings",
+    settings: "Settings", hideSettings: "Hide settings", switchLang: "Change to Afaan Oromoo",
     profilePhotoLabel: "Profile photo (shown on your profile)",
     idPhotoLabel: "ID card photo (replace only)",
     idPrivate: "Only you can see this. Photos only.",
@@ -222,7 +229,7 @@ const T = {
     farmer: "Qotee bulaa", supplier: "Dhiheessaa", regNow: "Akkaawuntii uumi",
     phoneRule: "Lakkoofsa bilbilaa Itoophiyaa: +251 9XXXXXXXX ykn 09XXXXXXXX.",
     pwRule: "Qubee 8 yookaan ol, lakkoofsa fi mallattoo tokko of keessaa qabu.",
-    settings: "Sirreeffama", hideSettings: "Dhoksi",
+    settings: "Sirreeffama", hideSettings: "Dhoksi", switchLang: "Afaan Eenglish jijjiiri",
     profilePhotoLabel: "Suuraa profaayilii (profaayilii keessatti mul'ata)",
     idPhotoLabel: "Suuraa waraqaa eenyummaa (haaromsuu qofa)",
     idPrivate: "Ati qofti ilaaluu dandeessa. Fakkii qofa.",
@@ -240,8 +247,9 @@ const T = {
   }
 };
 
+// Same language key the rest of the site uses (set by the first-visit chooser)
 let LANG = "en";
-try { LANG = sessionStorage.getItem("lang") === "om" ? "om" : "en"; } catch (e) {}
+try { LANG = localStorage.getItem("selectedLang") === "om" ? "om" : "en"; } catch (e) {}
 
 const LABELS = {
   pageTitle: "title", backLink: "home", tabLogin: "login", tabReg: "register",
@@ -251,7 +259,8 @@ const LABELS = {
   optFarmer: "roleFarmer", optSupplier: "roleSupplier",
   lblRSheger: "sheger", lblRIdFile: "idFile", idHint: "idHint", lblRPass: "password",
   pwHint: "pwRule", regBtn: "regNow",
-  setTitle: "settings", lblSetFull: "fullName", lblSetUser: "username",
+  setTitle: "settings", switchLang: "switchLang",
+  lblSetFull: "fullName", lblSetUser: "username",
   lblSetPhoto: "profilePhotoLabel", lblSetIdPhoto: "idPhotoLabel", idPrivate: "idPrivate",
   removePhoto: "remove", pwHead: "pwHead", lblCur: "curPw", lblNew: "newPw",
   pwHint2: "pwRule", saveBtn: "save", logoutBtn: "logout", reqLink: "myRequests",
@@ -403,11 +412,14 @@ function setTab(which) {
 document.getElementById("tabLogin").addEventListener("click", () => setTab("login"));
 document.getElementById("tabReg").addEventListener("click", () => setTab("register"));
 
-document.getElementById("langBtn").addEventListener("click", () => {
+// Switch language on this page (the 🌐 button is hidden after the first choice)
+function switchLanguage() {
   LANG = LANG === "en" ? "om" : "en";
-  try { sessionStorage.setItem("lang", LANG); } catch (e) {}
+  try { localStorage.setItem("selectedLang", LANG); } catch (e) {}
   applyLang();
-});
+}
+document.getElementById("langBtn").addEventListener("click", switchLanguage);
+document.getElementById("switchLang").addEventListener("click", switchLanguage);
 
 document.getElementById("toggleSettings").addEventListener("click", () => {
   const open = document.getElementById("settingsCard").classList.contains("hidden");
@@ -566,4 +578,4 @@ async function init() {
 init();
 </script>
 </body>
-  </html>
+    </html>
