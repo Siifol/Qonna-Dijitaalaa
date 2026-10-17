@@ -68,26 +68,55 @@
       </form>
 
       <form id="regForm" class="hidden">
-        <label id="lblFull">Full name</label>
+        <label id="lblRFull">Full name</label>
         <input id="regFull" required>
-        <label id="lblUser">Username</label>
+
+        <label id="lblRUser">Username</label>
         <input id="regUser" required>
-        <label id="lblRPhone">Phone number</label>
-        <input id="regContact" inputmode="tel" required>
-        <label id="lblSub">Sub-city</label>
-        <input id="regSub" required>
-        <label id="lblSheger">Sheger ID</label>
-        <input id="regSheger" required>
-        <label id="lblIdName">Name on ID card (optional)</label>
-        <input id="regIdName">
-        <label id="lblRole">I am a</label>
-        <select id="regRole">
-          <option value="farmer" id="optFarmer">Farmer</option>
-          <option value="supplier" id="optSupplier">Supplier</option>
+
+        <label id="lblRPhone">Phone (+251...)</label>
+        <input id="regContact" list="countryCodes" inputmode="tel" placeholder="+251..." required>
+        <datalist id="countryCodes">
+          <option value="+251">Ethiopia</option>
+          <option value="+254">Kenya</option>
+          <option value="+255">Tanzania</option>
+          <option value="+256">Uganda</option>
+        </datalist>
+        <p class="hint" id="phoneHint">Ethiopian mobile: +251 9XXXXXXXX or 09XXXXXXXX.</p>
+
+        <label id="lblRSub">Sub-city</label>
+        <select id="regSub" required>
+          <option value="" disabled selected id="chooseSub">Choose your Sub-city</option>
+          <option value="melka_nono">Melka Nono</option>
+          <option value="furi">Furi</option>
+          <option value="sebeta">Sebeta</option>
+          <option value="eka_tafo">Eka Tafo</option>
+          <option value="galan">Galan</option>
+          <option value="galan_guda">Galan Guda</option>
+          <option value="gafarsa_guje">Gafarsa Guje</option>
+          <option value="kura_jida">Kura Jida</option>
+          <option value="koye_feche">Koye Feche</option>
+          <option value="mana_abichu">Mana Abichu</option>
+          <option value="sululta">Sululta</option>
+          <option value="burayu">Burayu</option>
         </select>
+
+        <label id="lblRole">I am a</label>
+        <select id="regRole" required>
+          <option value="farmer" id="optFarmer">I am a Farmer (buy &amp; sell)</option>
+          <option value="supplier" id="optSupplier">I am a Supplier (sell only)</option>
+        </select>
+
+        <label id="lblRSheger">Sheger ID card number</label>
+        <input id="regSheger" required>
+
+        <label id="lblRIdFile">Upload Digital ID Card (Image/PDF)</label>
+        <input type="file" id="regIdFile" accept="image/*,.pdf" required>
+
         <label id="lblRPass">Password</label>
         <input id="regPass" type="password" autocomplete="new-password" required>
         <p class="hint" id="pwHint">At least 8 characters, with a letter, a number and a symbol.</p>
+
         <button class="btn" id="regBtn" type="submit">Create account</button>
       </form>
 
@@ -152,23 +181,30 @@ const API = "https://qonna-dijitaalaa.onrender.com";
 const T = {
   en: {
     title: "Profile", home: "← Home", login: "Login", register: "Register",
-    phone: "Phone number", password: "Password", fullName: "Full name", username: "Username",
-    subCity: "Sub-city", sheger: "Sheger ID", idName: "Name on ID card (optional)", role: "I am a",
+    phone: "Phone (+251...)", password: "Password", fullName: "Full name", username: "Username",
+    subCity: "Sub-city", chooseSub: "Choose your Sub-city", role: "I am a",
+    roleFarmer: "I am a Farmer (buy & sell)", roleSupplier: "I am a Supplier (sell only)",
+    sheger: "Sheger ID card number", idFile: "Upload Digital ID Card (Image/PDF)",
     farmer: "Farmer", supplier: "Supplier", regNow: "Create account",
+    phoneRule: "Ethiopian mobile: +251 9XXXXXXXX or 09XXXXXXXX.",
     pwRule: "At least 8 characters, with a letter, a number and a symbol.",
     settings: "Settings", hideSettings: "Hide settings", photo: "ID / profile photo",
     remove: "Remove photo", pwHead: "Change password (leave empty to keep)",
     curPw: "Current password", newPw: "New password", save: "Save changes", logout: "Logout",
     myRequests: "My requests", admin: "Admin", saved: "Saved.",
     loggedOut: "You have logged out.", regOk: "Account created. Now log in.",
-    working: "Please wait...", net: "Cannot reach the server. Check your internet and try again."
+    working: "Please wait...", net: "Cannot reach the server. Check your internet and try again.",
+    needId: "Please upload your ID card."
   },
   om: {
     title: "Profaayilii", home: "← Mana", login: "Seeni", register: "Galmaa'i",
-    phone: "Lakkoofsa bilbilaa", password: "Jecha iccitii", fullName: "Maqaa guutuu",
-    username: "Maqaa fayyadamaa", subCity: "Mana-hojii xiqqaa (Sub-city)",
-    sheger: "Lakkoofsa Sheger ID", idName: "Maqaa kaardii ID irratti (filannoo)", role: "Ani",
+    phone: "Bilbila (+251...)", password: "Jecha iccitii", fullName: "Maqaa guutuu",
+    username: "Maqaa fayyadamaa", subCity: "Kutaa Magaalaa",
+    chooseSub: "Kutaa Magaalaa Filadhu", role: "Ani",
+    roleFarmer: "Ani Qote Bulaa (bitu fi gurguru)", roleSupplier: "Ani Dhiyeessaa (gurguruu qofa)",
+    sheger: "Lakk. Waraqaa Eenyummaa Shaggar", idFile: "Waraqaa Eenyummaa Shaggar Fe'i (Fakkichaa/PDF)",
     farmer: "Qotee bulaa", supplier: "Dhiheessaa", regNow: "Akkaawuntii uumi",
+    phoneRule: "Lakkoofsa bilbilaa Itoophiyaa: +251 9XXXXXXXX ykn 09XXXXXXXX.",
     pwRule: "Qubee 8 yookaan ol, lakkoofsa fi mallattoo tokko of keessaa qabu.",
     settings: "Sirreeffama", hideSettings: "Dhoksi", photo: "Suuraa ID / profaayilii",
     remove: "Suuraa balleessi", pwHead: "Jecha iccitii jijjiiruu (duwwaa yoo hiikte, kan jiru ni eegama)",
@@ -176,7 +212,8 @@ const T = {
     save: "Jijjiiramoota olkaasi", logout: "Ba'i", myRequests: "Gaaffiiwwan koo",
     admin: "Bulchaa", saved: "Kuufameera.", loggedOut: "Ba'uudhaan galmaa'eera.",
     regOk: "Akkaawuntiin uumameera. Amma seenaa.", working: "Maaloo eeggadhu...",
-    net: "Serveriin hin argamne. Interneetii ilaali deebi'ii yaali."
+    net: "Serveriin hin argamne. Interneetii ilaali deebi'ii yaali.",
+    needId: "Maaloo waraqaa eenyummaa kee fe'i."
   }
 };
 
@@ -186,9 +223,11 @@ try { LANG = sessionStorage.getItem("lang") === "om" ? "om" : "en"; } catch (e) 
 const LABELS = {
   pageTitle: "title", backLink: "home", tabLogin: "login", tabReg: "register",
   lblLPhone: "phone", lblLPass: "password", loginBtn: "login",
-  lblFull: "fullName", lblUser: "username", lblRPhone: "phone", lblSub: "subCity",
-  lblSheger: "sheger", lblIdName: "idName", lblRole: "role", optFarmer: "farmer",
-  optSupplier: "supplier", lblRPass: "password", pwHint: "pwRule", regBtn: "regNow",
+  lblRFull: "fullName", lblRUser: "username", lblRPhone: "phone", phoneHint: "phoneRule",
+  lblRSub: "subCity", chooseSub: "chooseSub", lblRole: "role",
+  optFarmer: "roleFarmer", optSupplier: "roleSupplier",
+  lblRSheger: "sheger", lblRIdFile: "idFile", lblRPass: "password",
+  pwHint: "pwRule", regBtn: "regNow",
   setTitle: "settings", lblSetFull: "fullName", lblSetUser: "username", lblSetPhoto: "photo",
   removePhoto: "remove", pwHead: "pwHead", lblCur: "curPw", lblNew: "newPw",
   pwHint2: "pwRule", saveBtn: "save", logoutBtn: "logout", reqLink: "myRequests",
@@ -356,13 +395,19 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
 
 document.getElementById("regForm").addEventListener("submit", async (e) => {
   e.preventDefault();
+  const idFile = document.getElementById("regIdFile").files[0];
+  if (!idFile) { note("guestMsg", T_("needId"), false); return; }
   note("guestMsg", T_("working"), true);
   try {
     await api("/register", {
       method: "POST",
       body: JSON.stringify({
-        fullName: v("regFull"), username: v("regUser"), contact: v("regContact"),
-        subCity: v("regSub"), shegerId: v("regSheger"), idCardName: v("regIdName"),
+        fullName: v("regFull"),
+        username: v("regUser"),
+        contact: v("regContact"),
+        subCity: document.getElementById("regSub").value,
+        shegerId: v("regSheger"),
+        idCardName: idFile.name,
         role: document.getElementById("regRole").value,
         password: document.getElementById("regPass").value
       })
@@ -441,4 +486,4 @@ async function init() {
 init();
 </script>
 </body>
-  </html>
+</html>
