@@ -1,10 +1,9 @@
-// First-visit language chooser.
+// Language chooser: shows when someone ENTERS the site (icon, link, typed address).
+// Moving between pages inside the site keeps the chosen language.
 // Add this line just before </head> on EVERY page:
 // <script src="lang-choice.js"></script>
 (function () {
-  let saved = null;
-  try { saved = localStorage.getItem('selectedLang'); } catch (e) {}
-
+  // The 🌐 button is always hidden; language is changed by the chooser or Settings
   const style = document.createElement('style');
   style.textContent = `
     #langBtn, .lang-container { display: none !important; }
@@ -23,8 +22,12 @@
   `;
   document.head.appendChild(style);
 
-  // Already chosen: nothing more to show
-  if (saved === 'en' || saved === 'om') return;
+  // Did this visit come from another page of this same site?
+  let fromThisSite = false;
+  try {
+    fromThisSite = !!document.referrer && new URL(document.referrer).origin === location.origin;
+  } catch (e) {}
+  if (fromThisSite) return;
 
   document.addEventListener('DOMContentLoaded', function () {
     const box = document.createElement('div');
@@ -44,7 +47,8 @@
       b.addEventListener('click', function () {
         let ok = true;
         try { localStorage.setItem('selectedLang', b.dataset.lang); } catch (e) { ok = false; }
-        if (ok) location.reload();
+        // Reload as an in-site navigation so the chooser does not show again
+        if (ok) location.replace(location.href);
         else box.remove();
       });
     });
