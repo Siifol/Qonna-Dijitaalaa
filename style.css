@@ -293,3 +293,9 @@ a[href^="listing.html"] {
     font-weight: bold;
     font-size: 14px;
 }
+/* Card: name and price only, button below price */
+.listing-card { display: flex; flex-direction: column; }
+.listing-card .desc,
+.listing-card .meta:not(:has(a[href^="listing.html"])) { display: none; }
+.listing-card .meta:has(a[href^="listing.html"]) { order: 1; }
+.listing-card .del-btn { order: 2; }
