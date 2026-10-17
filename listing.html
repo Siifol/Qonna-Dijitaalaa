@@ -7,15 +7,21 @@
     <link rel="stylesheet" href="style.css">
     <style>
         .detail { background: white; border-radius: 14px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,.06); text-align: left; }
-        .detail h2 { margin: 8px 0 4px; color: #2E7D32; }
-        .price { font-size: 26px; font-weight: bold; color: #2E7D32; margin: 10px 0; }
-        .price small { font-size: 15px; font-weight: normal; color: #555; }
+        .detail h2 { margin: 10px 0 8px; color: #1B5E20; font-size: 24px; }
+        .price-box { background: #E8F5E9; border-radius: 12px; padding: 16px; text-align: center; margin: 8px 0 12px; }
+        .price-box .amount { font-size: 36px; font-weight: bold; color: #1B5E20; line-height: 1.1; }
+        .price-box .per { font-size: 17px; color: #2E7D32; margin-top: 2px; }
+        .price-box .total { display: inline-block; margin-top: 10px; background: #2E7D32; color: white; padding: 6px 14px; border-radius: 20px; font-size: 14px; }
         .row { padding: 10px 0; border-bottom: 1px solid #eee; color: #333; font-size: 15px; }
         .row b { color: #555; display: block; font-size: 13px; font-weight: normal; }
-        .actions { display: flex; gap: 10px; margin-top: 18px; }
-        .actions a { flex: 1; text-align: center; padding: 14px; border-radius: 10px; color: white; text-decoration: none; font-weight: bold; }
+        .reveal { width: 100%; margin-top: 18px; padding: 16px; border: none; border-radius: 12px; background: #2E7D32; color: white; font-size: 18px; font-weight: bold; cursor: pointer; }
+        .contact-box { margin-top: 14px; text-align: center; }
+        .contact-line { font-size: 20px; font-weight: bold; color: #1B5E20; margin-bottom: 12px; word-break: break-all; }
+        .actions { display: flex; flex-direction: column; gap: 10px; }
+        .actions a { display: block; text-align: center; padding: 16px; border-radius: 12px; color: white; text-decoration: none; font-weight: bold; font-size: 18px; }
         .call { background: #2E7D32; }
         .sms { background: #1565C0; }
+        .mail { background: #6A1B9A; }
         .tag { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 13px; color: white; }
         .tag.sell { background: #2E7D32; }
         .tag.buy { background: #EF6C00; }
@@ -55,18 +61,20 @@
         let current = null;
 
         const T = {
-            en: { back: "Back", call: "📞 Call", sms: "💬 SMS", seller: "Seller", contact: "Contact", area: "Sub-city", total: "Total for sale",
-                  cat: "Category", details: "Details", posted: "Posted on", sell: "Selling", buy: "Buying", per: "per",
+            en: { back: "Back", contactSeller: "📞 Contact seller", callSeller: "📞 Call seller", sms: "💬 SMS", emailSeller: "✉️ Email seller",
+                  seller: "Seller", area: "Sub-city", total: "Total for sale", cat: "Category", details: "Details",
+                  posted: "Posted on", sell: "Selling", buy: "Buying", per: "per",
                   loading: "Loading...", notFound: "Listing not found.", error: "Could not load. Please try again.",
-                  noContact: "No phone number given.", switchTo: "Afaan Oromoo",
+                  noContact: "No contact given.", switchTo: "Afaan Oromoo",
                   offerTitle: "Make an offer or ask for a discount", kind: "Request type", kindOffer: "Make an offer",
                   kindDiscount: "Ask for a discount", amountLabel: u => `Your price per ${u} (ETB)`,
                   message: "Message (optional)", send: "Send request", login: "Log in to send a request.", loginLink: "Log in",
                   sent: "Request sent.", failed: "Could not send. Please try again.", own: "This is your own listing." },
-            om: { back: "Duubatti", call: "📞 Bilbili", sms: "💬 SMS", seller: "Gurguruu", contact: "Quunnamtii", area: "Naannoo", total: "Waliigala gurguramu",
-                  cat: "Gosa", details: "Ibsa", posted: "Guyyaa galmeessame", sell: "Gurguruu", buy: "Bitaa", per: "tokkoof",
+            om: { back: "Duubatti", contactSeller: "📞 Gurguruu quunnamuu", callSeller: "📞 Gurguruu bilbili", sms: "💬 SMS", emailSeller: "✉️ Gurguruu emaili",
+                  seller: "Gurguruu", area: "Naannoo", total: "Waliigala gurguramu", cat: "Gosa", details: "Ibsa",
+                  posted: "Guyyaa galmeessame", sell: "Gurguruu", buy: "Bitaa", per: "tokkoof",
                   loading: "Fe'aa jira...", notFound: "Oduun kun hin argamne.", error: "Fe'uun hin danda'amne. Irra deebi'ii yaali.",
-                  noContact: "Lakkoofsi bilbilaa hin kennamne.", switchTo: "English",
+                  noContact: "Quunnamtiin hin kennamne.", switchTo: "English",
                   offerTitle: "Gatii kennii ykn rifeensa gaafadhu", kind: "Gosa gaaffii", kindOffer: "Gatii kennii",
                   kindDiscount: "Rifeensa gaafadhu", amountLabel: u => `Gatii keessan ${u} tokkoof (ETB)`,
                   message: "Ergaa (filannoo)", send: "Gaaffii ergi", login: "Gaaffii erguuf seenaa.", loginLink: "Seeni",
@@ -91,6 +99,26 @@
             box.textContent = text;
         }
 
+        function contactSection(raw, tr) {
+            const value = String(raw || "").trim();
+            const phone = value.replace(/[\s-]/g, "");
+            const isPhone = /^\+?\d{7,15}$/.test(phone);
+            const isEmail = value.includes("@");
+            if (!isPhone && !isEmail) {
+                return `<div class="contact-box">${tr.noContact}</div>`;
+            }
+            const buttons = isPhone
+                ? `<a class="call" href="tel:${phone}">${tr.callSeller}</a>
+                   <a class="sms" href="sms:${phone}">${tr.sms}</a>`
+                : `<a class="mail" href="mailto:${encodeURIComponent(value)}">${tr.emailSeller}</a>`;
+            return `
+                <button id="revealBtn" class="reveal" type="button">${tr.contactSeller}</button>
+                <div id="contactBox" class="contact-box" style="display:none;">
+                    <div class="contact-line">${esc(value)}</div>
+                    <div class="actions">${buttons}</div>
+                </div>`;
+        }
+
         function render() {
             if (!current) return;
             const l = current;
@@ -98,18 +126,9 @@
             const tr = T[lang];
             const user = getUser();
             const unit = l.unit || "unit";
-            const phone = String(o.contact || "").replace(/\s+/g, "");
-            const isPhone = /^[+\d-]+$/.test(phone) && phone.length > 0;
             const cat = CATS[l.category] ? CATS[l.category][lang] : l.category;
             const total = l.quantity ? `${esc(l.quantity)} ${esc(unit)}` : "-";
             const isMine = user && String(o.id) === String(user.uid || user.id);
-
-            const contactHtml = isPhone
-                ? `<div class="actions">
-                       <a class="call" href="tel:${encodeURIComponent(phone)}">${tr.call}</a>
-                       <a class="sms" href="sms:${encodeURIComponent(phone)}">${tr.sms}</a>
-                   </div>`
-                : `<div class="row"><b>${tr.contact}</b>${esc(o.contact || tr.noContact)}</div>`;
 
             document.title = l.name + " - Qonna";
             document.getElementById("backLink").textContent = tr.back;
@@ -119,14 +138,25 @@
             box.innerHTML = `
                 <span class="tag ${l.action === "sell" ? "sell" : "buy"}">${l.action === "sell" ? tr.sell : tr.buy}</span>
                 <h2>${esc(l.name)}</h2>
-                <div class="price">${esc(l.price)} ETB <small>${tr.per} ${esc(unit)}</small></div>
-                <div class="row"><b>${tr.total}</b>${total}</div>
+                <div class="price-box">
+                    <div class="amount">${esc(l.price)} ETB</div>
+                    <div class="per">${tr.per} ${esc(unit)}</div>
+                    <div class="total">${tr.total}: ${total}</div>
+                </div>
                 <div class="row"><b>${tr.cat}</b>${esc(cat)}</div>
                 <div class="row"><b>${tr.details}</b>${esc(l.description || "-")}</div>
                 <div class="row"><b>${tr.seller}</b>${esc(o.fullName || "-")}</div>
                 <div class="row"><b>${tr.area}</b>${esc(o.subCity || "-")}</div>
                 <div class="row"><b>${tr.posted}</b>${esc(l.createdAt || "-")}</div>
-                ${contactHtml}`;
+                ${contactSection(o.contact, tr)}`;
+
+            const reveal = document.getElementById("revealBtn");
+            if (reveal) {
+                reveal.addEventListener("click", () => {
+                    reveal.style.display = "none";
+                    document.getElementById("contactBox").style.display = "block";
+                });
+            }
 
             renderOffer(user, isMine, unit);
         }
