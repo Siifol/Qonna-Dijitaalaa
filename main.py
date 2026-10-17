@@ -512,3 +512,78 @@ def respond_offer(oid):
         return err("Not allowed.", "Hin hayyamamu.", 403)
     query("UPDATE offers SET status = ? WHERE id = ?", (status, oid), commit=True)
     return jsonify({"status": "success"})
+    # ---------------------------------------------------------------------------
+# Profile: view and change real name, username, password and ID photo
+# ---------------------------------------------------------------------------
+def init_profile():
+    init_db()  # safe to run again: only creates tables that are missing
+    with app.app_context():
+        db = get_db()
+        cur = db.cursor()
+        try:
+            cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS id_photo TEXT"
+                        if USE_PG else "ALTER TABLE users ADD COLUMN id_photo TEXT")
+            db.commit()
+        except Exception:
+            db.rollback()  # column already exists
+        cur.close()
+
+
+init_profile()
+
+
+def profile_out(u):
+    return {"status": "success", **public_user(u), "idPhoto": u.get("id_photo") or ""}
+
+
+@app.route("/profile", methods=["GET"])
+@login_required
+def profile_get():
+    return jsonify(profile_out(g.user))
+
+
+@app.route("/profile", methods=["PUT"])
+@login_required
+def profile_update():
+    d = request.get_json(silent=True) or {}
+    u = g.user
+    full_name = (d.get("fullName", u["full_name"]) or "").strip()
+    username = (d.get("username", u["username"]) or "").strip()
+    cur_pw = d.get("currentPassword") or ""
+    new_pw = d.get("newPassword") or ""
+
+    if not full_name:
+        return err("Please enter your real name.", "Maqaa guutuu galchi.")
+    if not re.fullmatch(r"[A-Za-z0-9_.]{3,30}", username):
+        return err("Username: 3-30 letters, numbers, _ or . only.",
+                   "Maqaan fayyadamaa: qubee, lakkoofsa, _ ykn . qofa (3-30).")
+    if query("SELECT id FROM users WHERE username = ? AND id <> ?",
+             (username, u["id"]), one=True):
+        return err("Username already taken.", "Maqaan fayyadamaa kun fudhatamee jira.")
+
+    pw_hash = u["password_hash"]
+    if new_pw:
+        if not check_password_hash(u["password_hash"], cur_pw):
+            return err("Current password is wrong.", "Jecha iccitii ammaa dogoggora.", 401)
+        if not valid_password(new_pw):
+            return err("New password is too weak.", "Jechi iccitii haaraa laafaa dha.")
+        pw_hash = generate_password_hash(new_pw)
+
+    photo = u.get("id_photo")
+    if "idPhoto" in d:
+        new = d.get("idPhoto") or ""
+        if new == "":
+            photo = None
+        elif not str(new).startswith("data:image/") or len(new) > 600000:
+            return err("Photo must be an image under about 400 KB.",
+                       "Suuraan suuraa ta'uu qaba, hanga 400 KB.")
+        else:
+            photo = new
+
+    query("""UPDATE users SET full_name = ?, username = ?, password_hash = ?, id_photo = ?
+             WHERE id = ?""", (full_name, username, pw_hash, photo, u["id"]), commit=True)
+
+    u2 = dict(u)
+    u2.update({"full_name": full_name, "username": username,
+               "password_hash": pw_hash, "id_photo": photo})
+    return jsonify(profile_out(u2))
