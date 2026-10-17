@@ -38,7 +38,7 @@
   .avatar img { width:100%; height:100%; object-fit:cover; }
   .links { margin-top:6px; display:flex; gap:14px; flex-wrap:wrap; }
   .links a { color:var(--green); font-weight:bold; text-decoration:none; font-size:14px; }
-  #photoPrev img { width:96px; height:96px; object-fit:cover; border-radius:12px; margin-top:8px; display:block; }
+  .prev img { width:96px; height:96px; object-fit:cover; border-radius:12px; margin-top:8px; display:block; }
 </style>
 </head>
 <body>
@@ -150,11 +150,19 @@
         <input id="setFull" required>
         <label id="lblSetUser">Username</label>
         <input id="setUser" required>
-        <label id="lblSetPhoto">ID / profile photo</label>
+
+        <label id="lblSetPhoto">Profile photo</label>
         <input id="setPhoto" type="file" accept="image/*">
-        <div id="photoPrev" class="hidden">
+        <div id="photoPrev" class="prev hidden">
           <img id="photoImg" alt="">
           <button type="button" class="btn small" id="removePhoto">Remove photo</button>
+        </div>
+
+        <label id="lblSetIdPhoto">ID card photo</label>
+        <input id="setIdPhoto" type="file" accept="image/*">
+        <p class="hint" id="idPrivate">Only you can see this.</p>
+        <div id="idPrev" class="prev hidden">
+          <img id="idImg" alt="">
         </div>
 
         <h3 id="pwHead">Change password (leave empty to keep)</h3>
@@ -190,10 +198,14 @@ const T = {
     farmer: "Farmer", supplier: "Supplier", regNow: "Create account",
     phoneRule: "Ethiopian mobile: +251 9XXXXXXXX or 09XXXXXXXX.",
     pwRule: "At least 8 characters, with a letter, a number and a symbol.",
-    settings: "Settings", hideSettings: "Hide settings", photo: "ID / profile photo",
+    settings: "Settings", hideSettings: "Hide settings",
+    profilePhotoLabel: "Profile photo (shown on your profile)",
+    idPhotoLabel: "ID card photo (replace only)",
+    idPrivate: "Only you can see this. Photos only.",
     remove: "Remove photo", pwHead: "Change password (leave empty to keep)",
     curPw: "Current password", newPw: "New password", save: "Save changes", logout: "Logout",
     myRequests: "My requests", admin: "Admin", saved: "Saved.",
+    photoErr: "Photo error / Dogoggora suuraa",
     loggedOut: "You have logged out.", regOk: "Account created. Now log in.",
     idFail: "The ID photo could not be saved. Log in and upload it again in Settings.",
     working: "Please wait...", net: "Cannot reach the server. Check your internet and try again.",
@@ -210,11 +222,16 @@ const T = {
     farmer: "Qotee bulaa", supplier: "Dhiheessaa", regNow: "Akkaawuntii uumi",
     phoneRule: "Lakkoofsa bilbilaa Itoophiyaa: +251 9XXXXXXXX ykn 09XXXXXXXX.",
     pwRule: "Qubee 8 yookaan ol, lakkoofsa fi mallattoo tokko of keessaa qabu.",
-    settings: "Sirreeffama", hideSettings: "Dhoksi", photo: "Suuraa ID / profaayilii",
+    settings: "Sirreeffama", hideSettings: "Dhoksi",
+    profilePhotoLabel: "Suuraa profaayilii (profaayilii keessatti mul'ata)",
+    idPhotoLabel: "Suuraa waraqaa eenyummaa (haaromsuu qofa)",
+    idPrivate: "Ati qofti ilaaluu dandeessa. Fakkii qofa.",
     remove: "Suuraa balleessi", pwHead: "Jecha iccitii jijjiiruu (duwwaa yoo hiikte, kan jiru ni eegama)",
     curPw: "Jecha iccitii ammaa", newPw: "Jecha iccitii haaraa",
     save: "Jijjiiramoota olkaasi", logout: "Ba'i", myRequests: "Gaaffiiwwan koo",
-    admin: "Bulchaa", saved: "Kuufameera.", loggedOut: "Ba'uudhaan galmaa'eera.",
+    admin: "Bulchaa", saved: "Kuufameera.",
+    photoErr: "Dogoggora suuraa",
+    loggedOut: "Ba'uudhaan galmaa'eera.",
     regOk: "Akkaawuntiin uumameera. Amma seenaa.",
     idFail: "Suuraa ID kuufamuu hin dandeenye. Seenaa, Sirreeffama keessatti deebi'ii fe'i.",
     working: "Maaloo eeggadhu...",
@@ -234,7 +251,8 @@ const LABELS = {
   optFarmer: "roleFarmer", optSupplier: "roleSupplier",
   lblRSheger: "sheger", lblRIdFile: "idFile", idHint: "idHint", lblRPass: "password",
   pwHint: "pwRule", regBtn: "regNow",
-  setTitle: "settings", lblSetFull: "fullName", lblSetUser: "username", lblSetPhoto: "photo",
+  setTitle: "settings", lblSetFull: "fullName", lblSetUser: "username",
+  lblSetPhoto: "profilePhotoLabel", lblSetIdPhoto: "idPhotoLabel", idPrivate: "idPrivate",
   removePhoto: "remove", pwHead: "pwHead", lblCur: "curPw", lblNew: "newPw",
   pwHint2: "pwRule", saveBtn: "save", logoutBtn: "logout", reqLink: "myRequests",
   adminLink: "admin"
@@ -248,8 +266,12 @@ const store = {
   del(k) { try { localStorage.removeItem(k); } catch (e) {} }
 };
 
-let currentPhoto = "";
-let newPhoto = undefined; // undefined = unchanged, "" = remove, data = new photo
+// Two separate photos: "profile" (public) and "id" (private, replace only)
+// next: undefined = unchanged, "" = remove, data = new photo
+const pics = {
+  profile: { current: "", next: undefined, img: "photoImg", box: "photoPrev" },
+  id:      { current: "", next: undefined, img: "idImg",    box: "idPrev" }
+};
 
 function applyLang() {
   document.documentElement.lang = LANG;
@@ -299,10 +321,11 @@ function showGuest() {
   syncSettingsBtn();
 }
 
-function renderPhoto() {
-  const src = newPhoto !== undefined ? newPhoto : currentPhoto;
-  document.getElementById("photoImg").src = src || "";
-  show("photoPrev", !!src);
+function renderPic(name) {
+  const p = pics[name];
+  const src = p.next !== undefined ? p.next : p.current;
+  document.getElementById(p.img).src = src || "";
+  show(p.box, !!src);
 }
 
 function showUser(p) {
@@ -311,22 +334,29 @@ function showUser(p) {
   document.getElementById("uName").textContent = p.fullName;
   document.getElementById("uMeta").textContent =
     "@" + p.username + " · " + (p.role === "supplier" ? T_("supplier") : T_("farmer"));
+
   const av = document.getElementById("avatar");
   av.innerHTML = "";
-  if (p.idPhoto) {
+  if (p.profilePhoto) {
     const img = document.createElement("img");
-    img.src = p.idPhoto;
+    img.src = p.profilePhoto;
     img.alt = "";
     av.appendChild(img);
   } else {
     av.textContent = "👤";
   }
+
   document.getElementById("setFull").value = p.fullName;
   document.getElementById("setUser").value = p.username;
   show("adminLink", p.role === "admin");
-  currentPhoto = p.idPhoto || "";
-  newPhoto = undefined;
-  renderPhoto();
+
+  pics.profile.current = p.profilePhoto || "";
+  pics.profile.next = undefined;
+  pics.id.current = p.idPhoto || "";
+  pics.id.next = undefined;
+  renderPic("profile");
+  renderPic("id");
+
   store.set("activeUser", { ...(store.get("activeUser") || {}),
     id: p.id, uid: p.id, role: p.role, fullName: p.fullName, username: p.username });
 }
@@ -351,6 +381,13 @@ function resizeImage(file, max = 400, quality = 0.8) {
     };
     reader.readAsDataURL(file);
   });
+}
+
+// ID card: keep it readable, but small enough for the database
+async function idPhotoFrom(file) {
+  let photo = await resizeImage(file, 1000, 0.7);
+  if (photo.length > 590000) photo = await resizeImage(file, 700, 0.6);
+  return photo;
 }
 
 function setTab(which) {
@@ -428,7 +465,7 @@ document.getElementById("regForm").addEventListener("submit", async (e) => {
     return;
   }
 
-  // 2) Log in as the new user and save the ID card photo
+  // 2) Log in as the new user and save the ID card photo (private)
   let idSaved = true;
   try {
     const d = await api("/login", {
@@ -437,12 +474,8 @@ document.getElementById("regForm").addEventListener("submit", async (e) => {
     });
     store.set("activeUser", { token: d.token, id: d.id, uid: d.id, role: d.role,
       fullName: d.fullName, username: d.username });
-
-    // Readable first; if the image is still too big, make it smaller
-    let photo = await resizeImage(idFile, 1000, 0.7);
-    if (photo.length > 590000) photo = await resizeImage(idFile, 700, 0.6);
-
-    await api("/profile", { method: "PUT", body: JSON.stringify({ idPhoto: photo }) });
+    const idPhoto = await idPhotoFrom(idFile);
+    await api("/profile", { method: "PUT", body: JSON.stringify({ idPhoto: idPhoto }) });
   } catch (err) {
     idSaved = false;
   }
@@ -459,17 +492,28 @@ document.getElementById("setPhoto").addEventListener("change", async (ev) => {
   const f = ev.target.files[0];
   if (!f) return;
   try {
-    newPhoto = await resizeImage(f);
-    renderPhoto();
+    pics.profile.next = await resizeImage(f, 400, 0.8);
+    renderPic("profile");
   } catch (err) {
-    note("setMsg", "Photo error / Dogoggora suuraa", false);
+    note("setMsg", T_("photoErr"), false);
+  }
+});
+
+document.getElementById("setIdPhoto").addEventListener("change", async (ev) => {
+  const f = ev.target.files[0];
+  if (!f) return;
+  try {
+    pics.id.next = await idPhotoFrom(f);
+    renderPic("id");
+  } catch (err) {
+    note("setMsg", T_("photoErr"), false);
   }
 });
 
 document.getElementById("removePhoto").addEventListener("click", () => {
-  newPhoto = "";
+  pics.profile.next = "";
   document.getElementById("setPhoto").value = "";
-  renderPhoto();
+  renderPic("profile");
 });
 
 document.getElementById("setForm").addEventListener("submit", async (e) => {
@@ -480,13 +524,16 @@ document.getElementById("setForm").addEventListener("submit", async (e) => {
     currentPassword: document.getElementById("setCur").value,
     newPassword: document.getElementById("setNew").value
   };
-  if (newPhoto !== undefined) body.idPhoto = newPhoto;
+  if (pics.profile.next !== undefined) body.profilePhoto = pics.profile.next;
+  if (pics.id.next !== undefined) body.idPhoto = pics.id.next;
+
   note("setMsg", T_("working"), true);
   try {
     const p = await api("/profile", { method: "PUT", body: JSON.stringify(body) });
     document.getElementById("setCur").value = "";
     document.getElementById("setNew").value = "";
     document.getElementById("setPhoto").value = "";
+    document.getElementById("setIdPhoto").value = "";
     showUser(p);
     note("setMsg", T_("saved"), true);
   } catch (err) {
@@ -496,8 +543,8 @@ document.getElementById("setForm").addEventListener("submit", async (e) => {
 
 document.getElementById("logoutBtn").addEventListener("click", () => {
   store.del("activeUser");
-  currentPhoto = "";
-  newPhoto = undefined;
+  pics.profile.current = ""; pics.profile.next = undefined;
+  pics.id.current = ""; pics.id.next = undefined;
   showGuest();
   setTab("login");
   note("guestMsg", T_("loggedOut"), true);
@@ -519,4 +566,4 @@ async function init() {
 init();
 </script>
 </body>
-        </html>
+  </html>
