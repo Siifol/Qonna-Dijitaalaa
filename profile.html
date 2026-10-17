@@ -110,8 +110,9 @@
         <label id="lblRSheger">Sheger ID card number</label>
         <input id="regSheger" required>
 
-        <label id="lblRIdFile">Upload Digital ID Card (Image/PDF)</label>
-        <input type="file" id="regIdFile" accept="image/*,.pdf" required>
+        <label id="lblRIdFile">Upload Digital ID Card (Image)</label>
+        <input type="file" id="regIdFile" accept="image/*" required>
+        <p class="hint" id="idHint">Take a clear photo of the whole card. Photos only, no PDF.</p>
 
         <label id="lblRPass">Password</label>
         <input id="regPass" type="password" autocomplete="new-password" required>
@@ -184,7 +185,8 @@ const T = {
     phone: "Phone (+251...)", password: "Password", fullName: "Full name", username: "Username",
     subCity: "Sub-city", chooseSub: "Choose your Sub-city", role: "I am a",
     roleFarmer: "I am a Farmer (buy & sell)", roleSupplier: "I am a Supplier (sell only)",
-    sheger: "Sheger ID card number", idFile: "Upload Digital ID Card (Image/PDF)",
+    sheger: "Sheger ID card number", idFile: "Upload Digital ID Card (Image)",
+    idHint: "Take a clear photo of the whole card. Photos only, no PDF.",
     farmer: "Farmer", supplier: "Supplier", regNow: "Create account",
     phoneRule: "Ethiopian mobile: +251 9XXXXXXXX or 09XXXXXXXX.",
     pwRule: "At least 8 characters, with a letter, a number and a symbol.",
@@ -193,8 +195,9 @@ const T = {
     curPw: "Current password", newPw: "New password", save: "Save changes", logout: "Logout",
     myRequests: "My requests", admin: "Admin", saved: "Saved.",
     loggedOut: "You have logged out.", regOk: "Account created. Now log in.",
+    idFail: "The ID photo could not be saved. Log in and upload it again in Settings.",
     working: "Please wait...", net: "Cannot reach the server. Check your internet and try again.",
-    needId: "Please upload your ID card."
+    needId: "Please upload a photo of your ID card."
   },
   om: {
     title: "Profaayilii", home: "← Mana", login: "Seeni", register: "Galmaa'i",
@@ -202,7 +205,8 @@ const T = {
     username: "Maqaa fayyadamaa", subCity: "Kutaa Magaalaa",
     chooseSub: "Kutaa Magaalaa Filadhu", role: "Ani",
     roleFarmer: "Ani Qote Bulaa (bitu fi gurguru)", roleSupplier: "Ani Dhiyeessaa (gurguruu qofa)",
-    sheger: "Lakk. Waraqaa Eenyummaa Shaggar", idFile: "Waraqaa Eenyummaa Shaggar Fe'i (Fakkichaa/PDF)",
+    sheger: "Lakk. Waraqaa Eenyummaa Shaggar", idFile: "Waraqaa Eenyummaa Shaggar Fe'i (Fakkii)",
+    idHint: "Waraqaa guutuu ifa ta'een fakkii fudhadhu. Fakkii qofa, PDF hin fudhatamu.",
     farmer: "Qotee bulaa", supplier: "Dhiheessaa", regNow: "Akkaawuntii uumi",
     phoneRule: "Lakkoofsa bilbilaa Itoophiyaa: +251 9XXXXXXXX ykn 09XXXXXXXX.",
     pwRule: "Qubee 8 yookaan ol, lakkoofsa fi mallattoo tokko of keessaa qabu.",
@@ -211,9 +215,11 @@ const T = {
     curPw: "Jecha iccitii ammaa", newPw: "Jecha iccitii haaraa",
     save: "Jijjiiramoota olkaasi", logout: "Ba'i", myRequests: "Gaaffiiwwan koo",
     admin: "Bulchaa", saved: "Kuufameera.", loggedOut: "Ba'uudhaan galmaa'eera.",
-    regOk: "Akkaawuntiin uumameera. Amma seenaa.", working: "Maaloo eeggadhu...",
+    regOk: "Akkaawuntiin uumameera. Amma seenaa.",
+    idFail: "Suuraa ID kuufamuu hin dandeenye. Seenaa, Sirreeffama keessatti deebi'ii fe'i.",
+    working: "Maaloo eeggadhu...",
     net: "Serveriin hin argamne. Interneetii ilaali deebi'ii yaali.",
-    needId: "Maaloo waraqaa eenyummaa kee fe'i."
+    needId: "Maaloo fakkii waraqaa eenyummaa kee fe'i."
   }
 };
 
@@ -226,7 +232,7 @@ const LABELS = {
   lblRFull: "fullName", lblRUser: "username", lblRPhone: "phone", phoneHint: "phoneRule",
   lblRSub: "subCity", chooseSub: "chooseSub", lblRole: "role",
   optFarmer: "roleFarmer", optSupplier: "roleSupplier",
-  lblRSheger: "sheger", lblRIdFile: "idFile", lblRPass: "password",
+  lblRSheger: "sheger", lblRIdFile: "idFile", idHint: "idHint", lblRPass: "password",
   pwHint: "pwRule", regBtn: "regNow",
   setTitle: "settings", lblSetFull: "fullName", lblSetUser: "username", lblSetPhoto: "photo",
   removePhoto: "remove", pwHead: "pwHead", lblCur: "curPw", lblNew: "newPw",
@@ -325,7 +331,8 @@ function showUser(p) {
     id: p.id, uid: p.id, role: p.role, fullName: p.fullName, username: p.username });
 }
 
-function resizeImage(file) {
+// Shrinks an image so it fits in the database (max side in px, JPEG quality 0..1)
+function resizeImage(file, max = 400, quality = 0.8) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = reject;
@@ -333,13 +340,12 @@ function resizeImage(file) {
       const img = new Image();
       img.onerror = reject;
       img.onload = () => {
-        const max = 400;
         const scale = Math.min(1, max / Math.max(img.width, img.height));
         const c = document.createElement("canvas");
         c.width = Math.round(img.width * scale);
         c.height = Math.round(img.height * scale);
         c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-        resolve(c.toDataURL("image/jpeg", 0.8));
+        resolve(c.toDataURL("image/jpeg", quality));
       };
       img.src = reader.result;
     };
@@ -398,28 +404,55 @@ document.getElementById("regForm").addEventListener("submit", async (e) => {
   const idFile = document.getElementById("regIdFile").files[0];
   if (!idFile) { note("guestMsg", T_("needId"), false); return; }
   note("guestMsg", T_("working"), true);
+
+  const phone = v("regContact");
+  const password = document.getElementById("regPass").value;
+
+  // 1) Create the account
   try {
     await api("/register", {
       method: "POST",
       body: JSON.stringify({
         fullName: v("regFull"),
         username: v("regUser"),
-        contact: v("regContact"),
+        contact: phone,
         subCity: document.getElementById("regSub").value,
         shegerId: v("regSheger"),
         idCardName: idFile.name,
         role: document.getElementById("regRole").value,
-        password: document.getElementById("regPass").value
+        password: password
       })
     });
-    const phone = v("regContact");
-    document.getElementById("regForm").reset();
-    setTab("login");
-    document.getElementById("loginContact").value = phone;
-    note("guestMsg", T_("regOk"), true);
   } catch (err) {
     note("guestMsg", err.message, false);
+    return;
   }
+
+  // 2) Log in as the new user and save the ID card photo
+  let idSaved = true;
+  try {
+    const d = await api("/login", {
+      method: "POST",
+      body: JSON.stringify({ contact: phone, password: password })
+    });
+    store.set("activeUser", { token: d.token, id: d.id, uid: d.id, role: d.role,
+      fullName: d.fullName, username: d.username });
+
+    // Readable first; if the image is still too big, make it smaller
+    let photo = await resizeImage(idFile, 1000, 0.7);
+    if (photo.length > 590000) photo = await resizeImage(idFile, 700, 0.6);
+
+    await api("/profile", { method: "PUT", body: JSON.stringify({ idPhoto: photo }) });
+  } catch (err) {
+    idSaved = false;
+  }
+
+  // 3) Log out and send the user to the login tab
+  store.del("activeUser");
+  document.getElementById("regForm").reset();
+  setTab("login");
+  document.getElementById("loginContact").value = phone;
+  note("guestMsg", idSaved ? T_("regOk") : T_("idFail"), idSaved);
 });
 
 document.getElementById("setPhoto").addEventListener("change", async (ev) => {
@@ -486,4 +519,4 @@ async function init() {
 init();
 </script>
 </body>
-</html>
+        </html>
