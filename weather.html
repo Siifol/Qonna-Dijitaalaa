@@ -2,27 +2,160 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather - Qonna</title>
     <link rel="stylesheet" href="style.css">
-    <title>Weather Forecast</title>
+    <style>
+        .wx-now { background: linear-gradient(135deg, #2E7D32, #66BB6A); color: white; border-radius: 16px; padding: 22px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+        .wx-now .icon { font-size: 56px; }
+        .wx-now .temp { font-size: 48px; font-weight: bold; line-height: 1; margin: 6px 0; }
+        .wx-now .desc { font-size: 17px; opacity: .95; }
+        .wx-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+        .wx-stat { background: white; border-radius: 12px; padding: 12px 6px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,.05); }
+        .wx-stat small { display: block; color: #666; font-size: 12px; }
+        .wx-stat b { font-size: 17px; color: #1B5E20; }
+        .wx-tip { background: #FFF8E1; border-left: 5px solid #F9A825; border-radius: 10px; padding: 14px; margin-top: 14px; text-align: left; color: #5D4037; font-size: 15px; }
+        .wx-title { color: #1B5E20; text-align: left; margin: 22px 0 10px; font-size: 18px; }
+        .wx-day { background: white; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 6px rgba(0,0,0,.05); }
+        .wx-day .d { font-weight: bold; color: #333; min-width: 90px; text-align: left; }
+        .wx-day .i { font-size: 26px; }
+        .wx-day .t { color: #333; text-align: right; font-size: 15px; }
+        .wx-day .r { color: #1565C0; font-size: 13px; display: block; }
+        .msg { color: #666; padding: 20px; text-align: center; }
+    </style>
 </head>
 <body>
     <div class="navbar">
-        <div class="nav-brand">🌤️ Weather</div>
-        <a href="index.html" class="btn-dash">Home</a>
-    </div>
-
-    <div class="container" style="text-align: center;">
-        <h2>Local Weather</h2>
-        <input type="text" id="cityInput" placeholder="Enter city name (e.g., Addis Ababa)">
-        <button onclick="getWeather()">Get Forecast</button>
-
-        <div id="weatherResult" style="margin-top: 20px;">
-            <h3 id="cityName"></h3>
-            <p id="temp"></p>
-            <p id="desc"></p>
+        <div class="nav-brand">🌱 Qonna</div>
+        <div>
+            <button id="langBtn" class="btn-dash">Afaan Oromoo</button>
+            <a href="index.html" id="backLink" class="btn-dash">Home</a>
         </div>
     </div>
 
-    <script src="weather-script.js"></script>
+    <div class="container wide">
+        <h2 id="pageTitle">Weather</h2>
+        <p id="place" style="color:#666;margin-top:-6px;"></p>
+        <div id="box" class="msg">Loading...</div>
+        <div id="content"></div>
+    </div>
+
+    <script>
+        const LAT = 9.03;
+        const LON = 38.80;
+        const PLACE = { en: "Sheger City", om: "Magaalaa Shaggar" };
+
+        let lang = sessionStorage.getItem("lang") || "en";
+        let data = null;
+
+        const T = {
+            en: { title: "Weather", back: "Home", switchTo: "Afaan Oromoo", now: "Right now", humidity: "Humidity",
+                  wind: "Wind", rain: "Rain today", forecast: "7-day forecast", chance: "Rain chance",
+                  tipRain: "Rain is likely in the coming days. Delay spraying and harvesting, and check that water can drain from your fields.",
+                  tipHot: "Hot and dry. Water your crops early in the morning or in the evening.",
+                  tipGood: "Good conditions for field work today.",
+                  loading: "Loading weather...", error: "Could not load the weather. Check your internet and try again." },
+            om: { title: "Qilleensa", back: "Mana", switchTo: "English", now: "Amma", humidity: "Jiidhina",
+                  wind: "Hafuura", rain: "Roobi har'a", forecast: "Raaga guyyaa 7", chance: "Carraa roobaa",
+                  tipRain: "Guyyoota dhufan roobni ni dhufa. Facaasuu fi funaannuu dhaabaa, dirreen bishaan akka baafamu ilaali.",
+                  tipHot: "Ho'aa fi gogaa. Midhaan kee ganama ykn galgala bishaan kenni.",
+                  tipGood: "Har'a hojii dirrii gaarii dha.",
+                  loading: "Qilleensa fe'aa jira...", error: "Qilleensa fe'uu hin danda'amne. Interneta ilaali irra deebi'ii yaali." }
+        };
+
+        // Open-Meteo weather codes -> icon + English / Afaan Oromoo description
+        function codeInfo(c) {
+            if (c === 0) return { i: "☀️", en: "Clear sky", om: "Aduu ifa" };
+            if (c <= 3) return { i: "⛅", en: "Partly cloudy", om: "Duumessa baay'ee" };
+            if (c <= 48) return { i: "🌫️", en: "Fog", om: "Dibbii" };
+            if (c <= 57) return { i: "🌦️", en: "Drizzle", om: "Roobaa xiqqaa" };
+            if (c <= 67) return { i: "🌧️", en: "Rain", om: "Roobaa" };
+            if (c <= 77) return { i: "🌨️", en: "Snow", om: "Haamaa" };
+            if (c <= 82) return { i: "🌦️", en: "Showers", om: "Roobaa dhangala'aa" };
+            return { i: "⛈️", en: "Thunderstorm", om: "Bubbee roobaa" };
+        }
+
+        const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g,
+            c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+        function dayName(dateStr) {
+            const d = new Date(dateStr + "T12:00:00");
+            return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+        }
+
+        function render() {
+            if (!data) return;
+            const tr = T[lang];
+            const c = data.current;
+            const d = data.daily;
+            const info = codeInfo(c.weather_code);
+            const todayRain = d.precipitation_probability_max[0] || 0;
+            const todayMax = d.temperature_2m_max[0];
+
+            let tip = tr.tipGood;
+            if (todayRain >= 60 || d.precipitation_probability_max.slice(0, 3).some(p => p >= 70)) tip = tr.tipRain;
+            else if (todayMax >= 28 && todayRain < 30) tip = tr.tipHot;
+
+            document.title = tr.title + " - Qonna";
+            document.getElementById("pageTitle").textContent = tr.title;
+            document.getElementById("place").textContent = PLACE[lang];
+            document.getElementById("langBtn").textContent = tr.switchTo;
+            document.getElementById("backLink").textContent = tr.back;
+
+            const days = d.time.map((t, i) => {
+                const di = codeInfo(d.weather_code[i]);
+                return `<div class="wx-day">
+                    <div class="d">${esc(dayName(t))}</div>
+                    <div class="i">${di.i}</div>
+                    <div class="t">${Math.round(d.temperature_2m_min[i])}° / ${Math.round(d.temperature_2m_max[i])}°
+                        <span class="r">${tr.chance}: ${d.precipitation_probability_max[i] ?? 0}%</span></div>
+                </div>`;
+            }).join("");
+
+            document.getElementById("content").innerHTML = `
+                <div class="wx-now">
+                    <div class="icon">${info.i}</div>
+                    <div class="temp">${Math.round(c.temperature_2m)}°C</div>
+                    <div class="desc">${tr.now}: ${info[lang]}</div>
+                </div>
+                <div class="wx-stats">
+                    <div class="wx-stat"><small>${tr.humidity}</small><b>${c.relative_humidity_2m}%</b></div>
+                    <div class="wx-stat"><small>${tr.wind}</small><b>${Math.round(c.wind_speed_10m)} km/h</b></div>
+                    <div class="wx-stat"><small>${tr.rain}</small><b>${c.precipitation} mm</b></div>
+                </div>
+                <div class="wx-tip">🌾 ${tip}</div>
+                <div class="wx-title">${tr.forecast}</div>
+                ${days}`;
+            box.style.display = "none";
+        }
+
+        async function load() {
+            const tr = T[lang];
+            box.style.display = "block";
+            box.textContent = tr.loading;
+            try {
+                const url = "https://api.open-meteo.com/v1/forecast?latitude=" + LAT + "&longitude=" + LON +
+                    "&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m" +
+                    "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
+                    "&timezone=Africa%2FAddis_Ababa&forecast_days=7";
+                const res = await fetch(url);
+                if (!res.ok) throw new Error("bad");
+                data = await res.json();
+                render();
+            } catch (e) {
+                box.textContent = tr.error;
+            }
+        }
+
+        document.getElementById("langBtn").addEventListener("click", () => {
+            lang = lang === "en" ? "om" : "en";
+            sessionStorage.setItem("lang", lang);
+            if (data) render();
+            else document.getElementById("backLink").textContent = T[lang].back;
+        });
+
+        const box = document.getElementById("box");
+        load();
+    </script>
 </body>
 </html>
