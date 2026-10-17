@@ -160,11 +160,11 @@ def register():
     role = (d.get("role") or "farmer").strip()
     password = d.get("password") or ""
     import re
-digits = re.sub(r"[\s-]", "", contact)
-m = re.fullmatch(r"(?:\+?251|0)?([79]\d{8})", digits)
-if not m:
-    return err("Enter a valid phone number, e.g. 0912345678.", "Lakkoofsa bilbilaa sirrii galchi, fkn 0912345678.")
-contact = "0" + m.group(1)
+    digits = re.sub(r"[\s-]", "", contact)
+    m = re.fullmatch(r"(?:\+?251|0)?([79]\d{8})", digits)
+    if not m:
+            return err("Enter a valid phone number, e.g. 0912345678.", "Lakkoofsa bilbilaa sirrii galchi, fkn 0912345678.")
+    contact = "0" + m.group(1)
 
     if not all([full_name, username, contact, sub_city, sheger_id]):
         return err("Please fill in all fields.", "Maaloo gabaajaa hunda guuti.")
