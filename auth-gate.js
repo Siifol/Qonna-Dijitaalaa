@@ -51,7 +51,7 @@
     box.innerHTML = `
       <div class="ag-card">
         <div class="ag-icon">🔒</div>
-        <h2>${t("Login to see details", "Odeeffannoo ilaaluuf seeni")}</h2>
+        <h2>${t("Login to see details", "Bal'inaan ilaaluf seeni")}</h2>
         <p>${t("Log in or create an account first.", "Dura seenuu ykn akkaawuntii uumi.")}</p>
         <a href="profile.html?next=${encodeURIComponent(nextHref)}">${t("Login / Register", "Seeni / Galmaa'i")}</a>
         ${isHome ? `<button type="button" class="ag-cancel">${t("Not now", "Amma miti")}</button>` : ""}
