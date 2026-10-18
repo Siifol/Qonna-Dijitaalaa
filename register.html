@@ -15,25 +15,20 @@
 
     <div class="container">
         <h2 id="regHeading" data-en="Create an Account" data-om="Herrega Haaraa Banaa">Create an Account</h2>
-
+        
         <form id="registerForm">
             <input type="text" id="fullName" data-en-ph="Full Name" data-om-ph="Maqaa Guutuu" placeholder="Full Name" required>
-
-            <input type="text" id="username" data-en-ph="Username" data-om-ph="Maqaa Fayyadamaa" placeholder="Username" required>
+            
+            <input type="text" id="username" data-en-ph="Username" data-om-ph="Maq-masoo" placeholder="Username" required>
 
             <input type="text" id="contact" list="countryCodes" data-en-ph="Email or Phone (+251...)" data-om-ph="E-mail ykn Bilbila (+251...)" placeholder="Email or Phone (+251...)" required>
-
+            
             <datalist id="countryCodes">
                 <option value="+251">Ethiopia</option>
                 <option value="+254">Kenya</option>
                 <option value="+255">Tanzania</option>
                 <option value="+256">Uganda</option>
             </datalist>
-
-            <select id="role" required class="dropdown">
-                <option value="farmer" data-en="I am a Farmer (buy &amp; sell)" data-om="Ani Qote Bulaa (bitu fi gurguruu)">I am a Farmer (buy &amp; sell)</option>
-                <option value="supplier" data-en="I am a Supplier (sell only)" data-om="Ani Dhiyeessaa (gurguruu qofa)">I am a Supplier (sell only)</option>
-            </select>
 
             <select id="subcity" required class="dropdown">
                 <option value="" disabled selected data-en="Choose your Sub-city" data-om="Kutaa Magaalaa Filadhu">Choose your Sub-city</option>
@@ -51,6 +46,11 @@
                 <option value="burayu">Burayu</option>
             </select>
 
+            <select id="role" required class="dropdown">
+                <option value="farmer" data-en="I am a Farmer (buy &amp; sell)" data-om="Ani Qote Bulaa (bitu fi gurguru)">I am a Farmer (buy &amp; sell)</option>
+                <option value="supplier" data-en="I am a Supplier (sell only)" data-om="Ani Dhiyeessaa (gurguruu qofa)">I am a Supplier (sell only)</option>
+            </select>
+
             <input type="text" id="shegerId" data-en-ph="Sheger ID Card Number" data-om-ph="Lakk. Waraqaa Eenyummaa Shaggar" placeholder="Sheger ID Card Number" required>
 
             <div class="file-upload-wrapper">
@@ -58,13 +58,12 @@
                 <input type="file" id="idUpload" accept="image/*,.pdf" required>
             </div>
 
-            <input type="password" id="password" data-en-ph="Password" data-om-ph="Jecha Iccitii" placeholder="Password" required>
+            <input type="password" id="password" data-en-ph="Password" data-om-ph="Jecha darbii" placeholder="Password" required>
 
             <div id="messageBox" class="message-box"></div>
 
             <button type="submit" id="submitBtn" data-en="Register" data-om="Galmaa'i">Register</button>
-
-            <div class="form-footer">
+            <div class="form-footer" style="text-align: center; margin-top: 20px; font-size: 14px;">
                 <p>
                     <span data-en="Already have an account? " data-om="Duraan herrega qabduu? ">Already have an account? </span>
                     <a href="login.html" style="color: #2e7d32; font-weight: bold; text-decoration: none;" data-en="Login" data-om="Seeni">Login</a>
