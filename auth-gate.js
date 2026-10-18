@@ -67,7 +67,7 @@
       const link = ev.target.closest ? ev.target.closest('a[href]') : null;
       if (!link) return;
       const href = link.getAttribute('href');
-      if (href === 'profile.html' || /^(https?:|mailto:|tel:|#)/.test(href)) return;
+      if (/^profile\.html/.test(href) || /^(https?:|mailto:|tel:|#)/.test(href)) return;
       if (hasLogin()) return;
       ev.preventDefault();
       showGate(href);
